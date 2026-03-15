@@ -18,6 +18,7 @@ public class ApiResponse<T> {
     private int status;
     private String message;
     private T data;
+    private Object errors;
 
     @Builder.Default
     private LocalDateTime timestamp = LocalDateTime.now();
@@ -46,10 +47,25 @@ public class ApiResponse<T> {
                 .build();
     }
 
+    public static ApiResponse<Void> noContent() {
+        return ApiResponse.<Void>builder()
+                .status(204)
+                .message("Success")
+                .build();
+    }
+
     public static <T> ApiResponse<T> error(int status, String message) {
         return ApiResponse.<T>builder()
                 .status(status)
                 .message(message)
+                .build();
+    }
+
+    public static <T> ApiResponse<T> error(int status, String message, Object errors) {
+        return ApiResponse.<T>builder()
+                .status(status)
+                .message(message)
+                .errors(errors)
                 .build();
     }
 }

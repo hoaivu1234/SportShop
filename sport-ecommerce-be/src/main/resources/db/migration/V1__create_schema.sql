@@ -23,6 +23,15 @@ CREATE TABLE user_roles (
     FOREIGN KEY (role_id) REFERENCES roles(id)
 );
 
+CREATE TABLE refresh_tokens (
+                                id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                token VARCHAR(500),
+                                user_id BIGINT,
+                                expiry_date DATETIME,
+                                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
 CREATE TABLE addresses (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT,
@@ -188,3 +197,7 @@ CREATE INDEX idx_product_price ON products(price);
 CREATE INDEX idx_order_user ON orders(user_id);
 
 CREATE INDEX idx_review_product ON reviews(product_id);
+
+CREATE INDEX idx_refresh_token ON refresh_tokens(token);
+
+CREATE INDEX idx_refresh_user ON refresh_tokens(user_id);

@@ -5,6 +5,8 @@ public final class AppConstant {
     private AppConstant() {}
 
     public static final String API_PREFIX = "/api/v1";
+    public static final String SECRET_KEY = "sport-ecommerce-key";
+    public static final long EXPIRATION_TIME = 15 * 60 * 1000;
 
     public static final int DEFAULT_PAGE = 0;
     public static final int DEFAULT_PAGE_SIZE = 10;

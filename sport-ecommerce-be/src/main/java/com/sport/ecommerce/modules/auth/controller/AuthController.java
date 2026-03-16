@@ -4,6 +4,7 @@ import com.sport.ecommerce.common.constant.AppConstant;
 import com.sport.ecommerce.common.dto.response.ApiResponse;
 import com.sport.ecommerce.modules.auth.dto.request.ChangePasswordRequest;
 import com.sport.ecommerce.modules.auth.dto.request.LoginRequest;
+import com.sport.ecommerce.modules.auth.dto.request.RefreshTokenRequest;
 import com.sport.ecommerce.modules.auth.dto.response.LoginResponse;
 import com.sport.ecommerce.modules.auth.service.AuthService;
 import com.sport.ecommerce.modules.user.dto.request.CreateUserRequest;
@@ -39,5 +40,10 @@ public class AuthController {
         authService.changePassword(request);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.noContent());
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<LoginResponse>> refreshToken(@RequestBody RefreshTokenRequest refreshTokenRequest) {
+        return ResponseEntity.ok(ApiResponse.success(authService.refresh(refreshTokenRequest.getRefreshToken())));
     }
 }

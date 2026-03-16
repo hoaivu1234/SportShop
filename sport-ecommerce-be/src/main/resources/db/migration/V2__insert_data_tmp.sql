@@ -3,16 +3,16 @@ INSERT INTO roles(name) VALUES
                             ('ROLE_CUSTOMER'),
                             ('ROLE_GUEST');
 
--- password: user12345
+-- password: daica123
 INSERT INTO users(email,password,first_name,last_name,phone,status) VALUES
-                                                                        ('admin@sport.com','$10$caoe7sWDSU8J8CwqlJCQDO7.O0mFRK93osEXdrzfwEk14TaEoLVuS','System','Admin','0900000001','ACTIVE'),
-                                                                        ('john@gmail.com','$10$caoe7sWDSU8J8CwqlJCQDO7.O0mFRK93osEXdrzfwEk14TaEoLVuS','John','Nguyen','0900000002','ACTIVE'),
-                                                                        ('anna@gmail.com','$10$caoe7sWDSU8J8CwqlJCQDO7.O0mFRK93osEXdrzfwEk14TaEoLVuS','Anna','Tran','0900000003','ACTIVE'),
-                                                                        ('david@gmail.com','$10$caoe7sWDSU8J8CwqlJCQDO7.O0mFRK93osEXdrzfwEk14TaEoLVuS','David','Le','0900000004','ACTIVE'),
-                                                                        ('mike@gmail.com','$10$caoe7sWDSU8J8CwqlJCQDO7.O0mFRK93osEXdrzfwEk14TaEoLVuS','Mike','Pham','0900000005','ACTIVE'),
-                                                                        ('staff@sport.com','$10$caoe7sWDSU8J8CwqlJCQDO7.O0mFRK93osEXdrzfwEk14TaEoLVuS','Staff','One','0900000006','ACTIVE'),
-                                                                        ('user1@gmail.com','$10$caoe7sWDSU8J8CwqlJCQDO7.O0mFRK93osEXdrzfwEk14TaEoLVuS','User','One','0900000007','ACTIVE'),
-                                                                        ('user2@gmail.com','$10$caoe7sWDSU8J8CwqlJCQDO7.O0mFRK93osEXdrzfwEk14TaEoLVuS','User','Two','0900000008','ACTIVE');
+                                                                        ('admin@sport.com','$2a$10$rULaC18btpFV9HMKPcsYl.CVF.VHB3NShmq1eb2R9NLyYJo3OT9hq','System','Admin','0900000001','ACTIVE'),
+                                                                        ('john@gmail.com','$2a$10$rULaC18btpFV9HMKPcsYl.CVF.VHB3NShmq1eb2R9NLyYJo3OT9hq','John','Nguyen','0900000002','ACTIVE'),
+                                                                        ('anna@gmail.com','$2a$10$rULaC18btpFV9HMKPcsYl.CVF.VHB3NShmq1eb2R9NLyYJo3OT9hq','Anna','Tran','0900000003','ACTIVE'),
+                                                                        ('david@gmail.com','$2a$10$rULaC18btpFV9HMKPcsYl.CVF.VHB3NShmq1eb2R9NLyYJo3OT9hq','David','Le','0900000004','ACTIVE'),
+                                                                        ('mike@gmail.com','$2a$10$rULaC18btpFV9HMKPcsYl.CVF.VHB3NShmq1eb2R9NLyYJo3OT9hq','Mike','Pham','0900000005','ACTIVE'),
+                                                                        ('staff@sport.com','$2a$10$rULaC18btpFV9HMKPcsYl.CVF.VHB3NShmq1eb2R9NLyYJo3OT9hq','Staff','One','0900000006','ACTIVE'),
+                                                                        ('user1@gmail.com','$2a$10$rULaC18btpFV9HMKPcsYl.CVF.VHB3NShmq1eb2R9NLyYJo3OT9hq','User','One','0900000007','ACTIVE'),
+                                                                        ('user2@gmail.com','$2a$10$rULaC18btpFV9HMKPcsYl.CVF.VHB3NShmq1eb2R9NLyYJo3OT9hq','User','Two','0900000008','ACTIVE');
 
 INSERT INTO user_roles VALUES
                            (1,1),

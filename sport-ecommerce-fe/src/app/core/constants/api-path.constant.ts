@@ -1,4 +1,6 @@
-const API_BASE = '/api/v1';
+import { environment } from '../../../environments/environment';
+
+const API_BASE = `${environment.apiUrl}/api/v1`;
 
 export const AUTH_API = {
   LOGIN: `${API_BASE}/auth/login`,

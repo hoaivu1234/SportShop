@@ -67,9 +67,21 @@
     <span>Remember this device for 30 days</span>
   </label>
 
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="error-alert" role="alert">
+      <i class="fas fa-exclamation-circle"></i>
+      {{ errorMessage() }}
+    </div>
+  }
+
   <!-- Submit -->
-  <button type="submit" class="btn-submit">
-    Sign In to Account <i class="fas fa-arrow-right"></i>
+  <button type="submit" class="btn-submit" [disabled]="isLoading()">
+    @if (isLoading()) {
+      <i class="fas fa-spinner fa-spin"></i> Signing In…
+    } @else {
+      Sign In to Account <i class="fas fa-arrow-right"></i>
+    }
   </button>
 
   <!-- Switch to Register -->

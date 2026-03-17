@@ -2,7 +2,10 @@ package com.sport.ecommerce.modules.product.service.impl;
 
 import com.sport.ecommerce.common.dto.response.PageResponse;
 import com.sport.ecommerce.exception.custom.BusinessException;
+import com.sport.ecommerce.modules.category.entity.Category;
+import com.sport.ecommerce.modules.category.repository.CategoryRepository;
 import com.sport.ecommerce.modules.product.dto.request.ProductFilterRequest;
+import com.sport.ecommerce.modules.product.dto.request.ProductRequest;
 import com.sport.ecommerce.modules.product.dto.response.ProductDetailResponse;
 import com.sport.ecommerce.modules.product.dto.response.ProductListResponse;
 import com.sport.ecommerce.modules.product.entity.Product;
@@ -36,6 +39,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductVariantRepository productVariantRepository;
     private final ProductImageRepository productImageRepository;
     private final ProductMapper productMapper;
+    private final CategoryRepository categoryRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -78,6 +82,35 @@ public class ProductServiceImpl implements ProductService {
         return buildDetailResponse(product);
     }
 
+    @Override
+    @Transactional
+    public ProductDetailResponse createProduct(ProductRequest request) {
+        Product product = productMapper.toEntity(request);
+        product.setSlug(generateUniqueSlug(request.getName(), null));
+        product.setCategory(resolveCategory(request.getCategoryId()));
+        return buildDetailResponse(productRepository.save(product));
+    }
+
+    @Override
+    @Transactional
+    public ProductDetailResponse updateProduct(Long id, ProductRequest request) {
+        Product product = findProductById(id);
+        String newSlug = generateUniqueSlug(request.getName(), id);
+        productMapper.updateEntity(request, product);
+        product.setSlug(newSlug);
+        product.setCategory(resolveCategory(request.getCategoryId()));
+        return buildDetailResponse(productRepository.save(product));
+    }
+
+    @Override
+    @Transactional
+    public void deleteProduct(Long id) {
+        if (!productRepository.existsById(id)) {
+            throw new BusinessException(HttpStatus.NOT_FOUND.value(), "Product not found with id: " + id);
+        }
+        productRepository.deleteById(id);
+    }
+
     private ProductDetailResponse buildDetailResponse(Product product) {
         List<ProductImage> images = productImageRepository.findByProductIdOrderBySortOrderAsc(product.getId());
         List<ProductVariant> variants = productVariantRepository.findByProductId(product.getId());
@@ -91,5 +124,27 @@ public class ProductServiceImpl implements ProductService {
     private Product findProductById(Long id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND.value(), "Product not found with id: " + id));
+    }
+
+    private Category resolveCategory(Long categoryId) {
+        if (categoryId == null) return null;
+        return categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND.value(), "Category not found with id: " + categoryId));
+    }
+
+    private String generateUniqueSlug(String name, Long excludeId) {
+        String base = name.toLowerCase()
+                .replaceAll("[^a-z0-9\\s-]", "")
+                .replaceAll("\\s+", "-")
+                .replaceAll("-+", "-")
+                .trim();
+
+        String slug = base;
+        int counter = 1;
+        while (excludeId == null ? productRepository.existsBySlug(slug)
+                : productRepository.existsBySlugAndIdNot(slug, excludeId)) {
+            slug = base + "-" + counter++;
+        }
+        return slug;
     }
 }

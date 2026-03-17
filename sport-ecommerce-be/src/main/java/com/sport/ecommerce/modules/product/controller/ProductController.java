@@ -4,10 +4,13 @@ import com.sport.ecommerce.common.constant.AppConstant;
 import com.sport.ecommerce.common.dto.response.ApiResponse;
 import com.sport.ecommerce.common.dto.response.PageResponse;
 import com.sport.ecommerce.modules.product.dto.request.ProductFilterRequest;
+import com.sport.ecommerce.modules.product.dto.request.ProductRequest;
 import com.sport.ecommerce.modules.product.dto.response.ProductDetailResponse;
 import com.sport.ecommerce.modules.product.dto.response.ProductListResponse;
 import com.sport.ecommerce.modules.product.service.ProductService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -56,5 +59,24 @@ public class ProductController {
     @GetMapping("/slug/{slug}")
     public ResponseEntity<ApiResponse<ProductDetailResponse>> getProductBySlug(@PathVariable String slug) {
         return ResponseEntity.ok(ApiResponse.success(productService.getProductBySlug(slug)));
+    }
+
+    @PostMapping
+    public ResponseEntity<ApiResponse<ProductDetailResponse>> createProduct(@Valid @RequestBody ProductRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.created(productService.createProduct(request)));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<ProductDetailResponse>> updateProduct(
+            @PathVariable Long id,
+            @Valid @RequestBody ProductRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(productService.updateProduct(id, request)));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteProduct(@PathVariable Long id) {
+        productService.deleteProduct(id);
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

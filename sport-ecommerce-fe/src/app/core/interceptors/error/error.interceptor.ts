@@ -6,7 +6,7 @@ import { ToastService } from '../../services/toast.service';
 import { StorageService } from '../../services/storage/storage.service';
 import { HTTP_STATUS, ERROR_MESSAGES } from '../../constants/app.constant';
 import { AUTH_ROUTES } from '../../constants/auth.constant';
-import { ApiResponse } from '../../../../models/api-response.model';
+import { ApiResponse } from '../../../models/api-response.model';
 
 /**
  * Global HTTP error handler:

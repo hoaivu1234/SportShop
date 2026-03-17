@@ -1,6 +1,7 @@
 package com.sport.ecommerce.modules.category.service;
 
 import com.sport.ecommerce.common.dto.response.PageResponse;
+import com.sport.ecommerce.modules.category.dto.request.CategoryRequest;
 import com.sport.ecommerce.modules.category.dto.response.CategoryResponse;
 import org.springframework.data.domain.Pageable;
 
@@ -15,4 +16,10 @@ public interface CategoryService {
     CategoryResponse getCategoryById(Long id);
 
     CategoryResponse getCategoryBySlug(String slug);
+
+    CategoryResponse createCategory(CategoryRequest request);
+
+    CategoryResponse updateCategory(Long id, CategoryRequest request);
+
+    void deleteCategory(Long id);
 }

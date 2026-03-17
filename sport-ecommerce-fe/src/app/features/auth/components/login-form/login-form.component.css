@@ -150,6 +150,18 @@
   cursor: pointer;
 }
 
+.error-alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 0.875rem;
+}
+
 .btn-submit {
   width: 100%;
   padding: 15px;
@@ -171,8 +183,13 @@
   margin-top: 4px;
 }
 
-.btn-submit:hover {
+.btn-submit:hover:not(:disabled) {
   background: var(--color-primary);
+}
+
+.btn-submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 
 .switch-mode {

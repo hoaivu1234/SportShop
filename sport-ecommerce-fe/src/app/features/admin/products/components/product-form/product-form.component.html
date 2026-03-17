@@ -1,237 +1,428 @@
 <div class="product-form-page">
-  <!-- Header -->
+
+  <!-- Page Header -->
   <div class="page-header">
     <div>
       <h1 class="page-title">Create New Product</h1>
-      <p class="page-subtitle">Configure your product details, inventory, and pricing for the storefront.</p>
+      <p class="page-subtitle">Fill in the details below to add a new product to your store.</p>
     </div>
     <div class="header-actions">
-      <button class="btn btn-ghost">Discard</button>
-      <button class="btn btn-secondary">
-        <i class="fas fa-eye"></i> Preview
+      <button class="btn btn-ghost" type="button" (click)="onDiscard()">
+        Discard
       </button>
-      <button class="btn btn-primary">
-        <i class="fas fa-floppy-disk"></i> Save Product
+      <button
+        class="btn btn-primary"
+        type="button"
+        (click)="onSubmit()"
+        [disabled]="isSubmitting()"
+      >
+        <i class="fas" [class.fa-floppy-disk]="!isSubmitting()" [class.fa-spinner]="isSubmitting()" [class.fa-spin]="isSubmitting()"></i>
+        {{ isSubmitting() ? 'Creating...' : 'Create Product' }}
       </button>
     </div>
   </div>
 
-  <!-- Two-Column Layout -->
-  <div class="form-layout">
-    <!-- LEFT COLUMN -->
+  <!-- Two-Column Form Layout -->
+  <form [formGroup]="form" class="form-layout" autocomplete="off">
+
+    <!-- ═══ LEFT COLUMN ═══════════════════════════════════════════════════════ -->
     <div class="form-left">
 
-      <!-- General Information -->
+      <!-- Section: Basic Information -->
       <div class="form-card">
-        <div class="card-section-title">GENERAL INFORMATION</div>
+        <div class="card-section-title">BASIC INFORMATION</div>
+
         <div class="form-group">
-          <label>Product Name</label>
-          <input type="text" class="form-input" placeholder="e.g. Apex Velocity Running Shoes" [(ngModel)]="productName" />
+          <label>
+            Product Name
+            <span class="required-star">*</span>
+          </label>
+          <input
+            type="text"
+            class="form-input"
+            formControlName="name"
+            placeholder="e.g. Apex Velocity Running Shoes"
+            [class.is-invalid]="hasError('name', 'required') || hasError('name', 'maxlength')"
+          />
+          <div class="field-error" *ngIf="hasError('name', 'required')">Product name is required.</div>
+          <div class="field-error" *ngIf="hasError('name', 'maxlength')">Maximum 255 characters allowed.</div>
         </div>
+
         <div class="form-group">
           <label>Description</label>
-          <textarea class="form-textarea" rows="4" placeholder="Describe your product..."></textarea>
+          <textarea
+            class="form-textarea"
+            rows="4"
+            formControlName="description"
+            placeholder="Describe your product features, materials, and use cases..."
+          ></textarea>
         </div>
+
         <div class="form-row">
           <div class="form-group">
-            <label>SKU</label>
-            <input type="text" class="form-input" [(ngModel)]="sku" />
+            <label>Brand</label>
+            <input
+              type="text"
+              class="form-input"
+              formControlName="brand"
+              placeholder="e.g. Nike, Adidas"
+            />
           </div>
           <div class="form-group">
-            <label>Master Vendor Code</label>
-            <input type="text" class="form-input" [(ngModel)]="vendorCode" />
+            <label>Category ID</label>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="categoryId"
+              placeholder="Enter category ID"
+              min="1"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>
+              Price ($)
+              <span class="required-star">*</span>
+            </label>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="price"
+              placeholder="0.00"
+              min="0.01"
+              step="0.01"
+              [class.is-invalid]="hasError('price', 'required') || hasError('price', 'min')"
+            />
+            <div class="field-error" *ngIf="hasError('price', 'required')">Price is required.</div>
+            <div class="field-error" *ngIf="hasError('price', 'min')">Price must be greater than 0.</div>
+          </div>
+          <div class="form-group">
+            <label>Discount Price ($)</label>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="discountPrice"
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
           </div>
         </div>
       </div>
 
-      <!-- Product Media -->
+      <!-- Section: Product Images -->
       <div class="form-card">
-        <div class="card-section-title">PRODUCT MEDIA</div>
-        <div class="upload-dropzone">
+        <div class="card-section-title">PRODUCT IMAGES</div>
+
+        <!-- Drop Zone -->
+        <div
+          class="upload-dropzone"
+          [class.drag-over]="isDragOver()"
+          (click)="openFilePicker()"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave()"
+          (drop)="onDrop($event)"
+        >
           <i class="fas fa-cloud-arrow-up upload-icon"></i>
-          <p class="upload-text">Drag & drop images here, or <span class="upload-link">click to browse</span></p>
-          <p class="upload-hint">PNG, JPG up to 10MB each</p>
+          <p class="upload-text">
+            Drag & drop images here, or <span class="upload-link">click to browse</span>
+          </p>
+          <p class="upload-hint">PNG, JPG up to 10MB each — first image will be set as main</p>
         </div>
-        <div class="image-thumbnails">
-          @for (img of productImages; track img) {
-            <div class="thumb-wrapper">
-              <img [src]="img" alt="Product image" class="thumb-img" />
-              <div class="thumb-overlay">
-                <button class="set-cover-btn">Set as cover</button>
-              </div>
+
+        <!-- Hidden file input -->
+        <input
+          #fileInput
+          type="file"
+          accept="image/*"
+          multiple
+          hidden
+          (change)="onFileSelected($event)"
+        />
+
+        <!-- Image Preview Grid -->
+        <div class="image-grid" *ngIf="images.length > 0">
+          <div class="image-card" *ngFor="let img of images; let i = index">
+            <div class="image-card-img-wrap">
+              <img [src]="img.previewUrl" [alt]="'Product image ' + (i + 1)" class="image-card-img" />
+              <span class="main-badge" *ngIf="img.isMain">
+                <i class="fas fa-star"></i> Main
+              </span>
             </div>
-          }
+            <div class="image-card-actions">
+              <button
+                type="button"
+                class="img-action-btn"
+                [class.img-action-btn--active]="img.isMain"
+                (click)="setMainImage(i)"
+                [title]="img.isMain ? 'Main image' : 'Set as main'"
+              >
+                <i class="fas fa-star"></i>
+              </button>
+              <button
+                type="button"
+                class="img-action-btn"
+                (click)="moveImageUp(i)"
+                [disabled]="i === 0"
+                title="Move left"
+              >
+                <i class="fas fa-arrow-left"></i>
+              </button>
+              <button
+                type="button"
+                class="img-action-btn"
+                (click)="moveImageDown(i)"
+                [disabled]="i === images.length - 1"
+                title="Move right"
+              >
+                <i class="fas fa-arrow-right"></i>
+              </button>
+              <button
+                type="button"
+                class="img-action-btn img-remove-btn"
+                (click)="removeImage(i)"
+                title="Remove image"
+              >
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
         </div>
-        <a href="#" class="bulk-link"><i class="fas fa-images"></i> Bulk upload</a>
+
+        <p class="upload-count" *ngIf="images.length > 0">
+          <i class="fas fa-images"></i> {{ images.length }} image{{ images.length === 1 ? '' : 's' }} selected
+        </p>
       </div>
 
-      <!-- Global Pricing -->
-      <div class="form-card">
-        <div class="card-section-title">GLOBAL PRICING</div>
-        <div class="form-row three-col">
-          <div class="form-group">
-            <label>Cost ($)</label>
-            <input type="number" class="form-input" placeholder="0.00" [(ngModel)]="costPrice" />
-          </div>
-          <div class="form-group">
-            <label>Regular Price ($)</label>
-            <input type="number" class="form-input" placeholder="0.00" [(ngModel)]="regularPrice" />
-          </div>
-          <div class="form-group">
-            <label>Sale Price ($)</label>
-            <input type="number" class="form-input" placeholder="0.00" [(ngModel)]="salePrice" />
-          </div>
-        </div>
-      </div>
-
-      <!-- Stock Management -->
-      <div class="form-card">
-        <div class="card-section-title">STOCK MANAGEMENT</div>
-        <div class="form-check-group">
-          <label class="check-label">
-            <input type="checkbox" [(ngModel)]="trackQuantity" />
-            <span>Track quantity</span>
-          </label>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Stop Quantity</label>
-            <input type="number" class="form-input" [(ngModel)]="stopQty" />
-          </div>
-          <div class="form-group">
-            <label>Threshold</label>
-            <input type="number" class="form-input" [(ngModel)]="threshold" />
-          </div>
-        </div>
-      </div>
-
-      <!-- Product Variants -->
+      <!-- Section: Product Variants -->
       <div class="form-card">
         <div class="card-section-title">PRODUCT VARIANTS</div>
-        <div class="table-wrapper">
+
+        <!-- Sizes Input -->
+        <div class="form-group">
+          <label>Sizes</label>
+          <div class="tag-input-row">
+            <div class="tags-container tags-container--input">
+              <span class="tag-item" *ngFor="let s of sizes">
+                {{ s }}
+                <button type="button" class="tag-remove" (click)="removeSize(s)">✕</button>
+              </span>
+              <input
+                type="text"
+                class="tag-inline-input"
+                [(ngModel)]="sizeInput"
+                [ngModelOptions]="{ standalone: true }"
+                (keydown)="onSizeKeydown($event)"
+                placeholder="e.g. S, M, L, XL — Enter to add"
+              />
+            </div>
+            <button type="button" class="btn btn-add-tag" (click)="addSize()">Add</button>
+          </div>
+        </div>
+
+        <!-- Colors Input -->
+        <div class="form-group">
+          <label>Colors</label>
+          <div class="tag-input-row">
+            <div class="tags-container tags-container--input">
+              <span class="tag-item" *ngFor="let c of colors">
+                {{ c }}
+                <button type="button" class="tag-remove" (click)="removeColor(c)">✕</button>
+              </span>
+              <input
+                type="text"
+                class="tag-inline-input"
+                [(ngModel)]="colorInput"
+                [ngModelOptions]="{ standalone: true }"
+                (keydown)="onColorKeydown($event)"
+                placeholder="e.g. Red, Blue, Black — Enter to add"
+              />
+            </div>
+            <button type="button" class="btn btn-add-tag" (click)="addColor()">Add</button>
+          </div>
+        </div>
+
+        <!-- Generate Button -->
+        <button
+          type="button"
+          class="btn-generate"
+          (click)="generateVariants()"
+          [disabled]="sizes.length === 0 && colors.length === 0"
+        >
+          <i class="fas fa-table-cells"></i>
+          Generate Combinations
+          <span class="generate-hint" *ngIf="sizes.length > 0 || colors.length > 0">
+            ({{ (sizes.length || 1) * (colors.length || 1) }} variants)
+          </span>
+        </button>
+
+        <!-- Empty state -->
+        <p class="variants-empty" *ngIf="variants.length === 0">
+          Add sizes and/or colors above, then click <strong>Generate Combinations</strong> to build the variant matrix.
+        </p>
+
+        <!-- Variants Table -->
+        <div class="table-wrapper" *ngIf="variants.length > 0">
           <table class="variants-table">
             <thead>
               <tr>
-                <th>Variant</th>
-                <th>SKU</th>
-                <th>Price</th>
+                <th>Size</th>
+                <th>Color</th>
+                <th>SKU <span class="required-star">*</span></th>
+                <th>Price ($) <span class="required-star">*</span></th>
                 <th>Stock</th>
-                <th>Status</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
-              @for (variant of variants; track variant.sku) {
-                <tr>
-                  <td class="variant-name">{{ variant.name }}</td>
-                  <td class="variant-sku">{{ variant.sku }}</td>
-                  <td>{{ variant.price }}</td>
-                  <td>{{ variant.stock }}</td>
-                  <td><span class="badge-active-sm">{{ variant.status }}</span></td>
-                </tr>
-              }
+              <tr *ngFor="let v of variants; let i = index; trackBy: trackVariant">
+                <td>
+                  <span class="variant-attr">{{ v.size || '—' }}</span>
+                </td>
+                <td>
+                  <span class="variant-attr">{{ v.color || '—' }}</span>
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    class="form-input form-input-sm"
+                    [(ngModel)]="v.sku"
+                    [ngModelOptions]="{ standalone: true }"
+                    placeholder="SKU"
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    class="form-input form-input-sm"
+                    [(ngModel)]="v.price"
+                    [ngModelOptions]="{ standalone: true }"
+                    placeholder="0.00"
+                    min="0.01"
+                    step="0.01"
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    class="form-input form-input-sm"
+                    [(ngModel)]="v.stock"
+                    [ngModelOptions]="{ standalone: true }"
+                    placeholder="0"
+                    min="0"
+                  />
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    class="img-action-btn img-remove-btn"
+                    (click)="removeVariant(i)"
+                    title="Remove variant"
+                  >
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
-        <button class="add-variant-btn">
-          <i class="fas fa-plus"></i> Add New Variant Combination
-        </button>
       </div>
-    </div>
 
-    <!-- RIGHT COLUMN -->
+    </div>
+    <!-- ═══ END LEFT COLUMN ═══════════════════════════════════════════════════ -->
+
+
+    <!-- ═══ RIGHT COLUMN ═══════════════════════════════════════════════════════ -->
     <div class="form-right">
 
-      <!-- Publishing Status -->
+      <!-- Section: Status -->
       <div class="form-card">
         <div class="card-section-title">PUBLISHING STATUS</div>
-        <div class="toggle-row">
-          <div>
-            <div class="toggle-label">Live on Store</div>
-            <div class="toggle-desc">Product visible to customers</div>
-          </div>
-          <label class="toggle-switch">
-            <input type="checkbox" [(ngModel)]="isLive" />
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-        <div class="form-check-group mt-12">
-          <label class="check-label">
-            <input type="checkbox" [(ngModel)]="featuredOnHomepage" />
-            <span>Feature on Homepage</span>
-          </label>
-        </div>
-        <div class="form-check-group">
-          <label class="check-label">
-            <input type="checkbox" [(ngModel)]="disabled" />
-            <span>Disable from store</span>
-          </label>
-        </div>
-      </div>
-
-      <!-- Organization -->
-      <div class="form-card">
-        <div class="card-section-title">ORGANIZATION</div>
         <div class="form-group">
-          <label>Category</label>
-          <select class="form-select" [(ngModel)]="category">
-            <option value="">Select category</option>
-            <option value="footwear">Footwear</option>
-            <option value="apparel">Apparel</option>
-            <option value="equipment">Equipment</option>
-            <option value="accessories">Accessories</option>
+          <label>Status</label>
+          <select class="form-select" formControlName="status">
+            <option *ngFor="let opt of statusOptions" [value]="opt.value">{{ opt.label }}</option>
           </select>
         </div>
-        <div class="form-group">
-          <label>Sub Category</label>
-          <select class="form-select" [(ngModel)]="subCategory">
-            <option value="">Select sub category</option>
-            <option value="running">Running</option>
-            <option value="training">Training</option>
-          </select>
+
+        <div class="status-hint" [ngClass]="'status-hint--' + (form.value.status ?? 'active') | lowercase">
+          <ng-container [ngSwitch]="form.value.status">
+            <ng-container *ngSwitchCase="'ACTIVE'">
+              <i class="fas fa-circle-check status-hint-icon"></i>
+              <span>Product will be <strong>visible</strong> to customers immediately.</span>
+            </ng-container>
+            <ng-container *ngSwitchCase="'INACTIVE'">
+              <i class="fas fa-circle-pause status-hint-icon"></i>
+              <span>Product will be <strong>hidden</strong> from the storefront.</span>
+            </ng-container>
+            <ng-container *ngSwitchCase="'DRAFT'">
+              <i class="fas fa-file-pen status-hint-icon"></i>
+              <span>Saved as <strong>draft</strong> — not published yet.</span>
+            </ng-container>
+          </ng-container>
         </div>
-        <div class="form-group">
-          <label>Tags</label>
-          <div class="tags-container">
-            @for (tag of tags; track tag) {
-              <span class="tag-item">
-                {{ tag }}
-                <button class="tag-remove" (click)="removeTag(tag)">✕</button>
-              </span>
-            }
+      </div>
+
+      <!-- Section: Submit Summary -->
+      <div class="form-card">
+        <div class="card-section-title">CREATION SUMMARY</div>
+        <div class="summary-list">
+          <div class="summary-item">
+            <span class="summary-label">Images</span>
+            <span class="summary-value" [class.summary-value--warn]="images.length === 0">
+              {{ images.length === 0 ? 'None added' : images.length + ' image(s)' }}
+            </span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Variants</span>
+            <span class="summary-value" [class.summary-value--warn]="variants.length === 0">
+              {{ variants.length === 0 ? 'None generated' : variants.length + ' variant(s)' }}
+            </span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Sizes</span>
+            <span class="summary-value">{{ sizes.length === 0 ? '—' : sizes.join(', ') }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Colors</span>
+            <span class="summary-value">{{ colors.length === 0 ? '—' : colors.join(', ') }}</span>
           </div>
         </div>
+
+        <button
+          class="btn btn-primary btn-full-width"
+          type="button"
+          (click)="onSubmit()"
+          [disabled]="isSubmitting()"
+        >
+          <i class="fas" [class.fa-floppy-disk]="!isSubmitting()" [class.fa-spinner]="isSubmitting()" [class.fa-spin]="isSubmitting()"></i>
+          {{ isSubmitting() ? 'Creating product...' : 'Create Product' }}
+        </button>
+        <button
+          class="btn btn-ghost btn-full-width mt-10"
+          type="button"
+          (click)="onDiscard()"
+          [disabled]="isSubmitting()"
+        >
+          Cancel
+        </button>
       </div>
 
-      <!-- SEO Settings -->
-      <div class="form-card">
-        <div class="card-section-title">SEO SETTINGS</div>
-        <div class="seo-preview">
-          <div class="seo-url">activegear.com/products/{{ productName ? productName.toLowerCase().replace(' ', '-') : 'product-name' }}</div>
-          <div class="seo-preview-title">{{ metaTitle || 'Product Meta Title' }}</div>
-          <div class="seo-preview-desc">{{ metaDescription || 'Your meta description will appear here in search results.' }}</div>
-        </div>
-        <div class="form-group mt-14">
-          <label>Meta Title <span class="char-limit">70 chars</span></label>
-          <input type="text" class="form-input" maxlength="70" [(ngModel)]="metaTitle" />
-        </div>
-        <div class="form-group">
-          <label>Meta Description <span class="char-limit">160 chars</span></label>
-          <textarea class="form-textarea" rows="3" maxlength="160" [(ngModel)]="metaDescription"></textarea>
-        </div>
-      </div>
-
-      <!-- Optimization Tips -->
+      <!-- Section: Tips -->
       <div class="form-card tips-card">
-        <div class="card-section-title">LISTING OPTIMIZATION TIPS</div>
+        <div class="card-section-title">OPTIMIZATION TIPS</div>
         <div class="tips-list">
-          @for (tip of tips; track tip.text) {
-            <div class="tip-item">
-              <i class="fas {{ tip.icon }}" [style.color]="tip.color"></i>
-              <span>{{ tip.text }}</span>
-            </div>
-          }
+          <div class="tip-item" *ngFor="let tip of tips">
+            <i class="fas {{ tip.icon }}" [style.color]="tip.color"></i>
+            <span>{{ tip.text }}</span>
+          </div>
         </div>
       </div>
+
     </div>
-  </div>
+    <!-- ═══ END RIGHT COLUMN ════════════════════════════════════════════════════ -->
+
+  </form>
 </div>

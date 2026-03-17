@@ -3,7 +3,9 @@
     "allow": [
       "Bash(find:*)",
       "Bash(npx ng:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(grep -r API_PREFIX D:Ca_nhanSportEcommercesport-ecommerce-besrcmainjavacomsportecommercecommon --include=*.java -l)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

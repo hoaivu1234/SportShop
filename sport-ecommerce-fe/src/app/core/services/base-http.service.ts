@@ -82,7 +82,7 @@ export class BaseHttpService {
 
   private handleError(error: HttpErrorResponse): Observable<never> {
     const defaultMsg =
-      ERROR_MESSAGES[error.status as keyof typeof HTTP_STATUS] ??
+      ERROR_MESSAGES[error.status] ??
       'Đã xảy ra lỗi không xác định. Vui lòng thử lại.';
 
     const serverMessage: string =

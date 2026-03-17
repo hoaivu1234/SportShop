@@ -26,12 +26,8 @@
   white-space: nowrap;
 }
 
-.topbar-center {
-  flex: 1;
-  max-width: 420px;
-}
-
 .search-wrapper {
+  width: 260px;
   position: relative;
 }
 

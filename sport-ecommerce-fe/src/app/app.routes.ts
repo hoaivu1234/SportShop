@@ -92,6 +92,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'products/create',
+        loadComponent: () =>
+          import('./features/admin/products/components/product-form/product-form.component').then(
+            (m) => m.ProductFormComponent
+          ),
+      },
+      {
         path: 'products/:id/edit',
         loadComponent: () =>
           import('./features/admin/products/components/product-form/product-form.component').then(

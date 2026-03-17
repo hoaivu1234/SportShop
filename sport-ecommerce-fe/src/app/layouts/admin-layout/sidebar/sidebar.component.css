@@ -33,6 +33,12 @@
   flex-shrink: 0;
 }
 
+.logo-main {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .logo-text {
   display: flex;
   flex-direction: column;

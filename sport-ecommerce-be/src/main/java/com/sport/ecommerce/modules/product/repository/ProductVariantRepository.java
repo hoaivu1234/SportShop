@@ -18,6 +18,9 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
 
     boolean existsBySku(String sku);
 
+    @Query("SELECT CASE WHEN COUNT(pv) > 0 THEN true ELSE false END FROM ProductVariant pv WHERE pv.sku = :sku AND pv.id <> :excludeId")
+    boolean existsBySkuAndIdNot(@Param("sku") String sku, @Param("excludeId") Long excludeId);
+
     @Query("SELECT pv FROM ProductVariant pv WHERE pv.product.id = :productId AND pv.stock > 0")
     List<ProductVariant> findAvailableByProductId(@Param("productId") Long productId);
 

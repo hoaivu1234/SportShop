@@ -25,9 +25,33 @@
       <button class="navbar__action-btn" title="Wishlist">
         <i class="far fa-heart"></i>
       </button>
-      <button class="navbar__action-btn" title="Account">
-        <i class="far fa-user"></i>
-      </button>
+
+      <!-- User action: login popup OR profile dropdown -->
+      <div class="user-action-wrap">
+        <button class="navbar__action-btn" title="Account" (click)="toggleUserAction()">
+          @if (authService.loggedIn()) {
+            <i class="fas fa-user"></i>
+            <span class="online-dot"></span>
+          } @else {
+            <i class="far fa-user"></i>
+          }
+        </button>
+
+        @if (!authService.loggedIn() && loginPopupOpen()) {
+          <app-login-popup
+            (loginSuccess)="onLoginSuccess()"
+            (close)="loginPopupOpen.set(false)"
+          />
+        }
+
+        @if (authService.loggedIn() && userDropdownOpen()) {
+          <app-user-dropdown
+            (logout)="onLogout()"
+            (close)="userDropdownOpen.set(false)"
+          />
+        }
+      </div>
+
       <button class="navbar__action-btn navbar__cart-btn" title="Cart">
         <i class="fas fa-shopping-bag"></i>
         @if (cartCount() > 0) {

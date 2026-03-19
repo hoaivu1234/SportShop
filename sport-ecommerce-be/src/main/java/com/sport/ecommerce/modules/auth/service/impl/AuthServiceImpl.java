@@ -50,7 +50,7 @@ public class AuthServiceImpl implements AuthService {
 
         RefreshToken refreshToken = refreshTokenService.create(user);
 
-        return new LoginResponse(accessToken, refreshToken.getToken());
+        return new LoginResponse(userMapper.toResponse(user), accessToken, refreshToken.getToken());
     }
 
     @Transactional
@@ -70,12 +70,8 @@ public class AuthServiceImpl implements AuthService {
 
         String accessToken = jwtService.generateToken(user);
         RefreshToken refreshToken = refreshTokenService.create(user);
-        RegisterResponse registerResponse = new RegisterResponse();
-        registerResponse.setAccessToken(accessToken);
-        registerResponse.setRefreshToken(refreshToken.getToken());
-        registerResponse.setUser(userMapper.toResponse(user));
 
-        return registerResponse;
+        return new RegisterResponse(userMapper.toResponse(user), accessToken, refreshToken.getToken());
     }
 
     @Override
@@ -94,8 +90,9 @@ public class AuthServiceImpl implements AuthService {
     public LoginResponse refresh(String refreshToken) {
         RefreshToken newToken = refreshTokenService.rotate(refreshToken);
 
-        String access = jwtService.generateToken(newToken.getUser());
+        User user = newToken.getUser();
+        String access = jwtService.generateToken(user);
 
-        return new LoginResponse(access, newToken.getToken());
+        return new LoginResponse(userMapper.toResponse(user), access, newToken.getToken());
     }
 }

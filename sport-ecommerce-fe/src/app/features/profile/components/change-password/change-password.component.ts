@@ -1,6 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControlOptions } from '@angular/forms';
+import { UserService } from '../../services/user.service';
+import { ToastService } from '../../../../core/services/toast.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-change-password',
@@ -10,18 +13,23 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
   styleUrl: './change-password.component.css',
 })
 export class ChangePasswordComponent {
-  form: FormGroup;
-  saved = false;
-  showCurrent = false;
-  showNew = false;
+  private readonly userService = inject(UserService);
+  private readonly toastService = inject(ToastService);
+  private readonly fb = inject(FormBuilder);
 
-  constructor(private fb: FormBuilder) {
-    this.form = this.fb.group({
+  form: FormGroup = this.fb.group(
+    {
       currentPassword: ['', Validators.required],
       newPassword: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', Validators.required],
-    }, { validators: this.passwordMatchValidator });
-  }
+    },
+    { validators: [this.passwordMatchValidator] } as AbstractControlOptions
+  );
+
+  saving = false;
+  showCurrent = false;
+  showNew = false;
+  showConfirm = false;
 
   passwordMatchValidator(form: FormGroup) {
     const np = form.get('newPassword')?.value;
@@ -29,13 +37,25 @@ export class ChangePasswordComponent {
     return np === cp ? null : { passwordMismatch: true };
   }
 
-  onSave() {
-    if (this.form.valid) {
-      this.saved = true;
-      this.form.reset();
-      setTimeout(() => this.saved = false, 3000);
-    } else {
+  onSave(): void {
+    if (this.form.invalid) {
       this.form.markAllAsTouched();
+      return;
     }
+
+    this.saving = true;
+    const { currentPassword, newPassword } = this.form.value;
+    this.userService.changePassword({ currentPassword, newPassword }).subscribe({
+      next: () => {
+        this.toastService.success('Password updated successfully!');
+        this.form.reset();
+        this.saving = false;
+      },
+      error: (err: HttpErrorResponse) => {
+        const msg = err.error?.resolvedMessage ?? 'Failed to update password.';
+        this.toastService.error(msg);
+        this.saving = false;
+      },
+    });
   }
 }

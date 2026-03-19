@@ -3,9 +3,9 @@
     <h2 class="content-title">PROFILE SETTINGS</h2>
   </div>
 
-  @if (saved) {
-    <div class="success-banner">
-      <i class="fas fa-check-circle"></i> Profile updated successfully!
+  @if (loading) {
+    <div class="loading-state">
+      <i class="fas fa-spinner fa-spin"></i> Loading profile...
     </div>
   }
 
@@ -38,26 +38,17 @@
     </div>
 
     <div class="form-group">
-      <label for="piEmail">Email Address *</label>
-      <input
-        id="piEmail"
-        type="email"
-        formControlName="email"
-        [class.input--error]="form.get('email')?.invalid && form.get('email')?.touched"
-      />
-      @if (form.get('email')?.invalid && form.get('email')?.touched) {
-        <span class="error-msg">Valid email required</span>
-      }
-    </div>
-
-    <div class="form-group">
       <label for="piPhone">Phone Number</label>
       <input id="piPhone" type="tel" formControlName="phone" />
     </div>
 
     <div class="form-actions">
-      <button type="submit" class="save-btn">
-        <i class="fas fa-save"></i> Save Changes
+      <button type="submit" class="save-btn" [disabled]="saving">
+        @if (saving) {
+          <i class="fas fa-spinner fa-spin"></i> Saving...
+        } @else {
+          <i class="fas fa-save"></i> Save Changes
+        }
       </button>
     </div>
   </form>

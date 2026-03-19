@@ -1,0 +1,29 @@
+<div class="dropdown-backdrop" (click)="close.emit()"></div>
+
+<div class="user-dropdown">
+  <!-- User Header -->
+  <div class="dropdown-header">
+    <div class="user-avatar">
+      <i class="fas fa-user"></i>
+    </div>
+    <div class="user-info">
+      <span class="user-name">My Account</span>
+      <span class="user-status">Logged in</span>
+    </div>
+  </div>
+
+  <div class="dropdown-divider"></div>
+
+  <!-- Menu Items -->
+  <a routerLink="/profile" class="dropdown-item" (click)="close.emit()">
+    <i class="fas fa-user-circle"></i>
+    <span>My Profile</span>
+  </a>
+
+  <div class="dropdown-divider"></div>
+
+  <button class="dropdown-item dropdown-item--logout" (click)="logout.emit()">
+    <i class="fas fa-sign-out-alt"></i>
+    <span>Sign Out</span>
+  </button>
+</div>

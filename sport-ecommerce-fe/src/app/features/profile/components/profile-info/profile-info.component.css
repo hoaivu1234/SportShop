@@ -99,3 +99,14 @@
 .save-btn:hover {
   background: var(--color-primary);
 }
+
+.save-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.loading-state {
+  color: var(--color-gray);
+  font-size: 0.875rem;
+  margin-bottom: 16px;
+}

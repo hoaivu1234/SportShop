@@ -1,0 +1,22 @@
+<div class="forbidden-page">
+  <div class="forbidden-card">
+    <div class="forbidden-icon-wrap">
+      <i class="fas fa-ban"></i>
+    </div>
+
+    <div class="forbidden-code">403</div>
+
+    <h1 class="forbidden-title">Access Denied</h1>
+    <p class="forbidden-message">You do not have permission to access this page.</p>
+    <p class="forbidden-hint">Contact your administrator if you believe this is a mistake.</p>
+
+    <div class="forbidden-actions">
+      <a routerLink="/auth/login" class="btn-primary-action">
+        <i class="fas fa-home"></i> Go to Login
+      </a>
+      <button class="btn-secondary-action" (click)="goBack()">
+        <i class="fas fa-arrow-left"></i> Go Back
+      </button>
+    </div>
+  </div>
+</div>

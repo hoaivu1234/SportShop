@@ -1,13 +1,14 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
-import { StorageService } from '../../../core/services/storage/storage.service';
+import { StorageService, UserResponse } from '../../../core/services/storage/storage.service';
 import { AUTH_API } from '../../../core/constants/api-path.constant';
+import { DatePipe } from '@angular/common';
 
 export interface AuthTokens {
   accessToken: string;
   refreshToken: string;
+  user: UserResponse;
 }
 
 interface LoginApiResponse {
@@ -21,7 +22,9 @@ interface LoginApiResponse {
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly storage = inject(StorageService);
-  private readonly router = inject(Router);
+
+  private readonly _loggedIn = signal<boolean>(!!this.storage.getAccessToken());
+  readonly loggedIn = this._loggedIn.asReadonly();
 
   login(email: string, password: string): Observable<LoginApiResponse> {
     return this.http
@@ -39,6 +42,8 @@ export class AuthService {
     if (response.data?.accessToken) {
       this.storage.setAccessToken(response.data.accessToken);
       this.storage.setRefreshToken(response.data.refreshToken);
+      this.storage.setUserInfo(response.data.user);
+      this._loggedIn.set(true);
     }
   }
 
@@ -52,6 +57,6 @@ export class AuthService {
 
   logout(): void {
     this.storage.clearTokens();
-    this.router.navigate(['/auth']);
+    this._loggedIn.set(false);
   }
 }

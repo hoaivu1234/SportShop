@@ -1,7 +1,7 @@
 export const AUTH_KEYS = {
   ACCESS_TOKEN: 'access_token',
   REFRESH_TOKEN: 'refresh_token',
-  CURRENT_USER: 'current_user',
+  USER_INFO: 'user_info',
 } as const;
 
 export type AuthKey = (typeof AUTH_KEYS)[keyof typeof AUTH_KEYS];

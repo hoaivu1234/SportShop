@@ -5,10 +5,10 @@
       <img src="https://picsum.photos/seed/500/80/80" alt="Avatar" class="profile-avatar" />
       <div class="profile-hero__info">
         <div class="profile-name-row">
-          <h1 class="profile-name">MARCUS STERLING</h1>
+          <h1 class="profile-name">{{ user.firstName }} {{user.lastName}}</h1>
           <span class="elite-badge"><i class="fas fa-crown"></i> Elite Member</span>
         </div>
-        <p class="profile-meta">marcus.sterling&#64;athletes.com &middot; Joined Sept 2023</p>
+        <p class="profile-meta">{{ user.email}} Joined {{ user.createdAt | date}}</p>
       </div>
       <div class="profile-stats">
         <div class="profile-stat">

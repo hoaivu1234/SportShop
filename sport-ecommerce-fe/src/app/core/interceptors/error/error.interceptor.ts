@@ -3,7 +3,7 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { ToastService } from '../../services/toast.service';
-import { StorageService } from '../../services/storage/storage.service';
+import { AuthService } from '../../../features/auth/services/auth.service';
 import { HTTP_STATUS, ERROR_MESSAGES } from '../../constants/app.constant';
 import { AUTH_ROUTES } from '../../constants/auth.constant';
 import { ApiResponse } from '../../../models/api-response.model';
@@ -17,7 +17,7 @@ import { ApiResponse } from '../../../models/api-response.model';
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const toastService = inject(ToastService);
-  const storageService = inject(StorageService);
+  const authService = inject(AuthService);
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
@@ -28,7 +28,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
       switch (error.status) {
         case HTTP_STATUS.UNAUTHORIZED:
-          storageService.clearTokens();
+          authService.logout();
           router.navigate([AUTH_ROUTES.LOGIN], {
             queryParams: { returnUrl: router.url },
           });

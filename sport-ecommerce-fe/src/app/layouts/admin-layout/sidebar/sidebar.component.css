@@ -116,8 +116,65 @@
 .sidebar-bottom {
   padding: 16px 12px 24px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
+/* User card */
+.user-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.user-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.user-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-badge {
+  font-size: 11px;
+  color: #22c55e;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.user-badge i {
+  font-size: 8px;
+}
+
+/* Sign out button */
 .sign-out-btn {
   display: flex;
   align-items: center;
@@ -132,14 +189,16 @@
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
+  font-family: var(--font-primary);
 }
 
 .sign-out-btn:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.06);
+  color: #ff6b6b;
+  background: rgba(220, 38, 38, 0.1);
 }
 
 .sign-out-btn i {
   width: 18px;
   text-align: center;
+  font-size: 15px;
 }

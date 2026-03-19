@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth/auth.guard';
+import { roleGuard } from './core/guards/admin/role.guard';
 
 export const routes: Routes = [
   {
@@ -172,7 +173,16 @@ export const routes: Routes = [
       },
     ],
     data: { roles: ['ROLE_ADMIN'] },
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard],
+  },
+
+  // ── Error pages ────────────────────────────────────────────────────────────
+  {
+    path: 'forbidden',
+    loadComponent: () =>
+      import('./features/errors/forbidden/forbidden.component').then(
+        (m) => m.ForbiddenComponent,
+      ),
   },
 
   // ── Fallback ───────────────────────────────────────────────────────────────

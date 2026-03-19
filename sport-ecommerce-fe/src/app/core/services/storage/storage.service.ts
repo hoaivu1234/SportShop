@@ -1,6 +1,17 @@
 import { Injectable } from '@angular/core';
 import { AUTH_KEYS } from '../../constants/auth.constant';
 
+export interface UserResponse {
+  id: number,
+  email: string,
+  firstName: string,
+  lastName: string,
+  phone: string,
+  status: string,
+  createdAt: Date,
+  updatedAt: Date
+}
+
 @Injectable({ providedIn: 'root' })
 export class StorageService {
   // ─── localStorage ───────────────────────────────────────────────────────────
@@ -61,13 +72,14 @@ export class StorageService {
 
   // ─── Raw string helpers (no JSON wrapping) ───────────────────────────────────
 
-  getRawLocal(key: string): string | null {
-    return localStorage.getItem(key);
+  getRawLocal(key: string): any | null {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : null;
   }
 
-  setRawLocal(key: string, value: string): void {
+  setRawLocal(key: string, value: any): void {
     try {
-      localStorage.setItem(key, value);
+      localStorage.setItem(key, JSON.stringify(value));
     } catch {
       // Silently handle
     }
@@ -91,10 +103,18 @@ export class StorageService {
     this.setRawLocal(AUTH_KEYS.REFRESH_TOKEN, token);
   }
 
+  getUserInfo(): string | null {
+    return this.getRawLocal(AUTH_KEYS.USER_INFO);
+  }
+
+  setUserInfo(userInfo: UserResponse): void {
+    this.setRawLocal(AUTH_KEYS.USER_INFO, userInfo);
+  }
+
   clearTokens(): void {
     this.removeLocal(AUTH_KEYS.ACCESS_TOKEN);
     this.removeLocal(AUTH_KEYS.REFRESH_TOKEN);
-    this.removeLocal(AUTH_KEYS.CURRENT_USER);
+    this.removeLocal(AUTH_KEYS.USER_INFO);
   }
 
   hasKey(key: string): boolean {

@@ -1,0 +1,83 @@
+<div class="popup-backdrop" (click)="close.emit()"></div>
+
+<div class="login-popup">
+  <!-- Header -->
+  <div class="popup-header">
+    <div class="popup-brand">
+      <span class="popup-title">Sign In</span>
+      <span class="popup-subtitle">Access your account</span>
+    </div>
+    <button class="popup-close" (click)="close.emit()" title="Close">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+
+  <!-- Form -->
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="popup-form">
+    <!-- Email -->
+    <div class="form-group">
+      <label for="popup-email">Email Address</label>
+      <input
+        id="popup-email"
+        type="email"
+        formControlName="email"
+        placeholder="your@email.com"
+        autocomplete="email"
+        [class.input--error]="form.get('email')?.invalid && form.get('email')?.touched"
+      />
+      @if (form.get('email')?.invalid && form.get('email')?.touched) {
+        <span class="error-msg">
+          @if (form.get('email')?.errors?.['required']) { Email is required }
+          @else { Enter a valid email address }
+        </span>
+      }
+    </div>
+
+    <!-- Password -->
+    <div class="form-group">
+      <div class="label-row">
+        <label for="popup-password">Password</label>
+        <a href="#" class="forgot-link" (click)="$event.preventDefault()">Forgot password?</a>
+      </div>
+      <div class="password-wrap">
+        <input
+          id="popup-password"
+          [type]="showPassword() ? 'text' : 'password'"
+          formControlName="password"
+          placeholder="Enter your password"
+          autocomplete="current-password"
+          [class.input--error]="form.get('password')?.invalid && form.get('password')?.touched"
+        />
+        <button type="button" class="toggle-pw" (click)="togglePassword()">
+          <i [class]="showPassword() ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+        </button>
+      </div>
+      @if (form.get('password')?.invalid && form.get('password')?.touched) {
+        <span class="error-msg">Password must be at least 6 characters</span>
+      }
+    </div>
+
+    <!-- Error Alert -->
+    @if (errorMessage()) {
+      <div class="error-alert" role="alert">
+        <i class="fas fa-exclamation-circle"></i>
+        {{ errorMessage() }}
+      </div>
+    }
+
+    <!-- Submit -->
+    <button type="submit" class="btn-signin" [disabled]="isLoading()">
+      @if (isLoading()) {
+        <i class="fas fa-spinner fa-spin"></i> Signing in…
+      } @else {
+        Sign In <i class="fas fa-arrow-right"></i>
+      }
+    </button>
+  </form>
+
+  <!-- Footer -->
+  <div class="popup-footer">
+    <span>Don't have an account?</span>
+    <button type="button" class="link-btn" (click)="goToCreateAccount()">Create account</button>
+  </div>
+</div>

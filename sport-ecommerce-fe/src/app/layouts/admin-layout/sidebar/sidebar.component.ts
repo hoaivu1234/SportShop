@@ -1,14 +1,18 @@
-import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthService } from '../../../features/auth/services/auth.service';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
   imports: [RouterLink, RouterLinkActive],
   templateUrl: './sidebar.component.html',
-  styleUrl: './sidebar.component.css'
+  styleUrl: './sidebar.component.css',
 })
 export class SidebarComponent {
+  private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
+
   navItems = [
     { label: 'Dashboard', icon: 'fa-gauge', route: '/admin/dashboard' },
     { label: 'Products', icon: 'fa-box', route: '/admin/products' },
@@ -20,4 +24,9 @@ export class SidebarComponent {
     { label: 'Analytics', icon: 'fa-chart-line', route: '/admin/analytics' },
     { label: 'Settings', icon: 'fa-gear', route: '/admin/settings' },
   ];
+
+  signOut(): void {
+    this.authService.logout();
+    this.router.navigate(['/auth/login']);
+  }
 }

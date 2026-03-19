@@ -183,6 +183,23 @@
   color: var(--color-primary);
 }
 
+/* User action wrapper (anchors popup/dropdown) */
+.user-action-wrap {
+  position: relative;
+}
+
+.online-dot {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 8px;
+  height: 8px;
+  background: #22c55e;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-dark);
+  pointer-events: none;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .navbar__nav,

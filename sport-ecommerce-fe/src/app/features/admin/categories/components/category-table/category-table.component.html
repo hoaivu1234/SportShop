@@ -9,7 +9,7 @@
       </tr>
     </thead>
     <tbody>
-      @for (cat of categories; track cat.name) {
+      @for (cat of categories(); track cat.id) {
         <tr>
           <td>
             <div class="cat-name">
@@ -23,14 +23,23 @@
           </td>
           <td>
             <div class="action-btns">
-              <button class="action-btn archive-btn">Archive</button>
-              <button class="action-btn edit-btn">Edit</button>
+              <button class="action-btn edit-btn" (click)="openModal(cat)">
+                Edit
+              </button>
             </div>
           </td>
         </tr>
       }
     </tbody>
   </table>
+  <!-- Modal -->
+  @if (showModal) {
+    <app-category-form
+      [mode]="mode"
+      [category]="selectedCategory"
+      (close)="closeModal()"
+    ></app-category-form>
+  }
 </div>
 
 <div class="table-footer">

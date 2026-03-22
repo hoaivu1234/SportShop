@@ -29,12 +29,15 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
         c.id,
         c.name,
         c.slug,
+        p.id,
+        p.name,
         COUNT(pr.id),
         c.createdAt
     )
     FROM Category c
+    LEFT JOIN c.parent p
     LEFT JOIN Product pr ON pr.category.id = c.id
-    GROUP BY c.id, c.name, c.slug, c.createdAt
+    GROUP BY c.id, c.name, c.slug, p.id, p.name, c.createdAt
     """)
     Page<CategoryResponse> findAllCategoriesExcludeChildren(Pageable pageable);
 

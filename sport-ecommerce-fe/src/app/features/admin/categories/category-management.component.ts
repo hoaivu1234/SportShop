@@ -12,6 +12,7 @@ import { CategoryTableComponent } from './components/category-table/category-tab
 })
 export class CategoryManagementComponent {
   showModal = false;
+  mode: string = 'create';
 
   treeItems = [
     {

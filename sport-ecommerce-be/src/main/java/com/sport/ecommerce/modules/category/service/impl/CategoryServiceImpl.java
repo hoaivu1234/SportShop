@@ -39,6 +39,8 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryMapper.toResponseList(categoryRepository.findAllRootCategoriesWithChildren());
     }
 
+    @Override
+    @Transactional(readOnly = true)
     public PageResponse<CategoryResponse> getCategoriesExcludeChildren(Pageable pageable) {
         return PageResponse.of(categoryRepository.findAllCategoriesExcludeChildren(pageable));
     }
@@ -61,6 +63,10 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     public CategoryResponse createCategory(CategoryRequest request) {
+        if (categoryRepository.existsByName(request.getName())) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST.value(), "Category name already exists");
+        }
+
         Category category = categoryMapper.toEntity(request);
         category.setSlug(generateUniqueSlug(request.getName(), null));
 

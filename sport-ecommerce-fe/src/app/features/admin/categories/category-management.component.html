@@ -6,9 +6,6 @@
       <p class="page-subtitle">Organize and manage your product catalog hierarchy.</p>
     </div>
     <div class="header-actions">
-      <button class="btn btn-secondary">
-        <i class="fas fa-archive"></i> Archive Old
-      </button>
       <button class="btn btn-primary" (click)="openModal()">
         <i class="fas fa-plus"></i> Add Category
       </button>
@@ -49,11 +46,6 @@
           <span class="stat-label">Total Categories</span>
           <span class="stat-value">24</span>
         </div>
-        <div class="stat-row">
-          <span class="stat-label">Empty Slots</span>
-          <span class="stat-value warning">2</span>
-        </div>
-        <a href="#" class="reports-link">View performance reports <i class="fas fa-arrow-right"></i></a>
       </div>
     </div>
 
@@ -67,6 +59,6 @@
 
   <!-- Modal -->
   @if (showModal) {
-    <app-category-form (close)="closeModal()"></app-category-form>
+    <app-category-form [mode]="mode" (close)="closeModal()"></app-category-form>
   }
 </div>

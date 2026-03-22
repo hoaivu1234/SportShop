@@ -29,6 +29,8 @@ public class CategoryResponse {
             Long id,
             String name,
             String slug,
+            Long parentId,
+            String parentName,
             Long productCount,
             LocalDateTime createdAt
     ) {
@@ -37,5 +39,7 @@ public class CategoryResponse {
         this.slug = slug;
         this.productCount = productCount;
         this.createdAt = createdAt;
+        this.parentId = parentId;
+        this.parentName = parentName;
     }
 }

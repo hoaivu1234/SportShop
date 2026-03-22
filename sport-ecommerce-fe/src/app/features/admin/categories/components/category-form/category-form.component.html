@@ -1,64 +1,43 @@
 <div class="modal-overlay" (click)="onCancel()">
   <div class="modal-box" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h2 class="modal-title">New Category</h2>
+      <h2 class="modal-title">{{ titleModal() }}</h2>
       <button class="modal-close" (click)="onCancel()">
         <i class="fas fa-times"></i>
       </button>
     </div>
 
-    <div class="modal-body">
-      <div class="form-group">
-        <label>Name <span class="required">*</span></label>
-        <input
-          type="text"
-          class="form-input"
-          placeholder="e.g. Trail Running"
-          [(ngModel)]="categoryName"
-        />
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Name <span class="required">*</span></label>
+          <input
+            type="text"
+            class="form-input"
+            placeholder="e.g. Trail Running"
+            formControlName="name"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Parent Category</label>
+          <select class="form-select" formControlName="parentId">
+            <option [ngValue]="null">None (Top-level)</option>
+            <option *ngFor="let c of filteredCategories()" [ngValue]="c.id">
+              {{ c.name }}
+            </option>
+          </select>
+        </div>
       </div>
 
-      <div class="form-group">
-        <label>Parent Category</label>
-        <select class="form-select" [(ngModel)]="parentCategory">
-          <option value="">None (Top-level)</option>
-          <option value="footwear">Footwear</option>
-          <option value="apparel">Apparel</option>
-          <option value="equipment">Equipment</option>
-          <option value="wellness">Wellness</option>
-        </select>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" (click)="onCancel()">
+          Cancel
+        </button>
+        <button type="submit" class="btn btn-primary" (click)="onSubmit()">
+          Confirm
+        </button>
       </div>
-
-      <div class="form-group">
-        <label>Description</label>
-        <textarea
-          class="form-textarea"
-          rows="3"
-          placeholder="Briefly describe what this category contains for SEO purposes..."
-          [(ngModel)]="description"
-        ></textarea>
-      </div>
-
-      <div class="form-check-group">
-        <label class="check-label">
-          <input type="checkbox" [(ngModel)]="showInNav" />
-          <span>Show in navigation menu</span>
-        </label>
-      </div>
-
-      <div class="form-check-group">
-        <label class="check-label">
-          <input type="checkbox" [(ngModel)]="setActiveImmediately" />
-          <span>Set as active immediately</span>
-        </label>
-      </div>
-    </div>
-
-    <div class="modal-footer">
-      <button class="btn btn-ghost" (click)="onCancel()">Cancel</button>
-      <button class="btn btn-primary" (click)="onSubmit()">
-        <i class="fas fa-plus"></i> Create Category
-      </button>
-    </div>
+    </form>
   </div>
 </div>

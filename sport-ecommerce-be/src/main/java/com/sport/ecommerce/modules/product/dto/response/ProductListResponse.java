@@ -24,6 +24,7 @@ public class ProductListResponse {
     private BigDecimal discountPrice;
     private String status;
     private String mainImageUrl;
+    private Integer totalStock;
 
     // Category summary
     private Long categoryId;

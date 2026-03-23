@@ -1,0 +1,32 @@
+<div class="toast-container" aria-live="polite" aria-atomic="false">
+  @for (toast of toasts(); track trackById($index, toast)) {
+    <div
+      class="toast"
+      [ngClass]="'toast--' + toast.type"
+      role="alert"
+    >
+      <div class="toast__icon">
+        @switch (toast.type) {
+          @case ('success') { <span>✓</span> }
+          @case ('error')   { <span>✕</span> }
+          @case ('warning') { <span>⚠</span> }
+          @default          { <span>ℹ</span> }
+        }
+      </div>
+
+      <div class="toast__body">
+        @if (toast.title) {
+          <p class="toast__title">{{ toast.title }}</p>
+        }
+        <p class="toast__message">{{ toast.message }}</p>
+      </div>
+
+      <button
+        class="toast__close"
+        type="button"
+        aria-label="Đóng thông báo"
+        (click)="remove(toast.id)"
+      >✕</button>
+    </div>
+  }
+</div>

@@ -1,5 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { CategoryService } from './services/category.service';
+import { CategoryStoreService } from './services/category-store.service';
 import { CategoryFormComponent } from './components/category-form/category-form.component';
 import { CategoryTableComponent } from './components/category-table/category-table.component';
 
@@ -8,32 +10,56 @@ import { CategoryTableComponent } from './components/category-table/category-tab
   standalone: true,
   imports: [CommonModule, CategoryFormComponent, CategoryTableComponent],
   templateUrl: './category-management.component.html',
-  styleUrl: './category-management.component.css'
+  styleUrl: './category-management.component.css',
 })
-export class CategoryManagementComponent {
+export class CategoryManagementComponent implements OnInit {
+  private readonly categoryService = inject(CategoryService);
+  readonly categoryStore = inject(CategoryStoreService);
+
   showModal = false;
-  mode: string = 'create';
+  readonly mode = 'create';
 
-  treeItems = [
-    {
-      name: 'Footwear', icon: 'fa-folder', products: 248, expanded: true,
-      children: ['Running', 'Basketball', 'Lifestyle']
-    },
-    {
-      name: 'Apparel', icon: 'fa-folder', products: 412, expanded: true,
-      children: ['Tops', 'Bottoms', 'Socks']
-    },
-    {
-      name: 'Equipment', icon: 'fa-folder', products: 184, expanded: false,
-      children: []
-    },
-    {
-      name: 'Wellness', icon: 'fa-folder', products: 76, expanded: false,
-      children: []
-    },
-  ];
+  readonly tree = this.categoryStore.tree;
+  readonly totalCategories = this.categoryStore.allFlat;
 
-  openModal() { this.showModal = true; }
-  closeModal() { this.showModal = false; }
-  toggleTree(item: any) { item.expanded = !item.expanded; }
+  /** IDs of currently expanded nodes — local UI state only */
+  private readonly expandedIds = signal(new Set<number>());
+
+  ngOnInit(): void {
+    this.loadSharedData();
+  }
+
+  /** Load tree (for left panel) and full flat list (for parent dropdown) */
+  loadSharedData(): void {
+    this.categoryService.getTreeCategories().subscribe({
+      next: (res) => this.categoryStore.setTree(res.data),
+      error: (err) => console.error('Error loading category tree:', err),
+    });
+
+    this.categoryService.getAllCategories().subscribe({
+      next: (res) => this.categoryStore.setAllFlat(res.data),
+      error: (err) => console.error('Error loading all categories:', err),
+    });
+  }
+
+  /** Called when the form successfully creates or updates a category */
+  onSaved(): void {
+    this.loadSharedData();
+  }
+
+  isExpanded(id: number): boolean {
+    return this.expandedIds().has(id);
+  }
+
+  toggleTree(id: number): void {
+    this.expandedIds.update(current => {
+      const next = new Set(current);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  openModal(): void { this.showModal = true; }
+
+  closeModal(): void { this.showModal = false; }
 }

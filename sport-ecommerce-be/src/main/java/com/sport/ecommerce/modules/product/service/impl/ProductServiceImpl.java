@@ -5,7 +5,9 @@ import com.sport.ecommerce.exception.custom.BusinessException;
 import com.sport.ecommerce.modules.category.entity.Category;
 import com.sport.ecommerce.modules.category.repository.CategoryRepository;
 import com.sport.ecommerce.modules.product.dto.request.ProductFilterRequest;
+import com.sport.ecommerce.modules.product.dto.request.ProductImageRequest;
 import com.sport.ecommerce.modules.product.dto.request.ProductRequest;
+import com.sport.ecommerce.modules.product.dto.request.ProductVariantRequest;
 import com.sport.ecommerce.modules.product.dto.response.ProductDetailResponse;
 import com.sport.ecommerce.modules.product.dto.response.ProductListResponse;
 import com.sport.ecommerce.modules.product.entity.Product;
@@ -29,6 +31,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -57,12 +61,29 @@ public class ProductServiceImpl implements ProductService {
         Pageable pageable = PageRequest.of(filter.getPage(), filter.getSize(), sort);
 
         Page<ProductListResponse> page = productRepository.findAll(spec, pageable)
-                .map(product -> {
-                    ProductListResponse response = productMapper.toListResponse(product);
-                    productImageRepository.findByProductIdAndIsMainTrue(product.getId())
-                            .ifPresent(img -> response.setMainImageUrl(img.getImageUrl()));
-                    return response;
-                });
+                .map(productMapper::toListResponse);
+
+        List<Long> ids = page.getContent().stream().map(ProductListResponse::getId).toList();
+
+        if (!ids.isEmpty()) {
+            // Batch load main images — one query instead of N queries
+            Map<Long, String> mainImages = productImageRepository.findMainImagesByProductIds(ids)
+                    .stream()
+                    .collect(Collectors.toMap(img -> img.getProduct().getId(), ProductImage::getImageUrl));
+
+            // Batch load total stock — one query instead of N queries
+            Map<Long, Integer> stockMap = productVariantRepository.sumStockByProductIds(ids)
+                    .stream()
+                    .collect(Collectors.toMap(
+                            row -> ((Number) row[0]).longValue(),
+                            row -> ((Number) row[1]).intValue()
+                    ));
+
+            page.getContent().forEach(p -> {
+                p.setMainImageUrl(mainImages.get(p.getId()));
+                p.setTotalStock(stockMap.getOrDefault(p.getId(), 0));
+            });
+        }
 
         return PageResponse.of(page);
     }
@@ -70,8 +91,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public ProductDetailResponse getProductById(Long id) {
-        Product product = findProductById(id);
-        return buildDetailResponse(product);
+        return buildDetailResponse(findProductById(id));
     }
 
     @Override
@@ -88,18 +108,36 @@ public class ProductServiceImpl implements ProductService {
         Product product = productMapper.toEntity(request);
         product.setSlug(generateUniqueSlug(request.getName(), null));
         product.setCategory(resolveCategory(request.getCategoryId()));
-        return buildDetailResponse(productRepository.save(product));
+        Product saved = productRepository.save(product);
+
+        saveImages(saved, request.getImages());
+        saveVariants(saved, request.getVariants());
+
+        return buildDetailResponse(saved);
     }
 
     @Override
     @Transactional
     public ProductDetailResponse updateProduct(Long id, ProductRequest request) {
         Product product = findProductById(id);
-        String newSlug = generateUniqueSlug(request.getName(), id);
         productMapper.updateEntity(request, product);
-        product.setSlug(newSlug);
+        product.setSlug(generateUniqueSlug(request.getName(), id));
         product.setCategory(resolveCategory(request.getCategoryId()));
-        return buildDetailResponse(productRepository.save(product));
+        Product saved = productRepository.save(product);
+
+        // Replace images when the request includes them
+        if (request.getImages() != null && !request.getImages().isEmpty()) {
+            productImageRepository.deleteByProductId(saved.getId());
+            saveImages(saved, request.getImages());
+        }
+
+        // Replace variants when the request includes them
+        if (request.getVariants() != null && !request.getVariants().isEmpty()) {
+            productVariantRepository.deleteByProductId(saved.getId());
+            saveVariants(saved, request.getVariants());
+        }
+
+        return buildDetailResponse(saved);
     }
 
     @Override
@@ -111,6 +149,8 @@ public class ProductServiceImpl implements ProductService {
         productRepository.deleteById(id);
     }
 
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
     private ProductDetailResponse buildDetailResponse(Product product) {
         List<ProductImage> images = productImageRepository.findByProductIdOrderBySortOrderAsc(product.getId());
         List<ProductVariant> variants = productVariantRepository.findByProductId(product.getId());
@@ -119,6 +159,42 @@ public class ProductServiceImpl implements ProductService {
         response.setImages(productMapper.toImageResponseList(images));
         response.setVariants(productMapper.toVariantResponseList(variants));
         return response;
+    }
+
+    /**
+     * Saves a list of images for a product.
+     * If no image is explicitly marked as main, the first one becomes main automatically.
+     */
+    private void saveImages(Product product, List<ProductImageRequest> images) {
+        if (images == null || images.isEmpty()) return;
+
+        boolean hasExplicitMain = images.stream().anyMatch(r -> Boolean.TRUE.equals(r.getIsMain()));
+
+        for (int i = 0; i < images.size(); i++) {
+            ProductImageRequest req = images.get(i);
+            ProductImage image = new ProductImage();
+            image.setProduct(product);
+            image.setImageUrl(req.getImageUrl());
+            image.setIsMain(hasExplicitMain ? Boolean.TRUE.equals(req.getIsMain()) : i == 0);
+            image.setSortOrder(req.getSortOrder() != null ? req.getSortOrder() : i);
+            productImageRepository.save(image);
+        }
+    }
+
+    /** Saves a list of variants for a product. */
+    private void saveVariants(Product product, List<ProductVariantRequest> variants) {
+        if (variants == null || variants.isEmpty()) return;
+
+        for (ProductVariantRequest req : variants) {
+            ProductVariant variant = new ProductVariant();
+            variant.setProduct(product);
+            variant.setSku(req.getSku());
+            variant.setSize(req.getSize());
+            variant.setColor(req.getColor());
+            variant.setPrice(req.getPrice());
+            variant.setStock(req.getStock() != null ? req.getStock() : 0);
+            productVariantRepository.save(variant);
+        }
     }
 
     private Product findProductById(Long id) {

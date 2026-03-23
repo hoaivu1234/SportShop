@@ -5,6 +5,7 @@ import com.sport.ecommerce.common.dto.response.ApiResponse;
 import com.sport.ecommerce.common.dto.response.PageResponse;
 import com.sport.ecommerce.modules.category.dto.request.CategoryRequest;
 import com.sport.ecommerce.modules.category.dto.response.CategoryResponse;
+import com.sport.ecommerce.modules.category.dto.response.CategoryTreeResponse;
 import com.sport.ecommerce.modules.category.service.CategoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,34 +26,23 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<PageResponse<CategoryResponse>>> getCategories(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "name") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir) {
-
-        Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
-        Pageable pageable = PageRequest.of(page, size, sort);
-
+    public ResponseEntity<ApiResponse<PageResponse<CategoryResponse>>> getCategories(Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.success(categoryService.getCategories(pageable)));
     }
 
     @GetMapping("/flat")
-    public ResponseEntity<ApiResponse<PageResponse<CategoryResponse>>> getCategoriesExcludeChildren(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "name") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir) {
-
-        Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
-        Pageable pageable = PageRequest.of(page, size, sort);
-
+    public ResponseEntity<ApiResponse<PageResponse<CategoryResponse>>> getCategoriesExcludeChildren(Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.success(categoryService.getCategoriesExcludeChildren(pageable)));
     }
 
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAllFlat() {
+        return ResponseEntity.ok(ApiResponse.success(categoryService.getAllFlat()));
+    }
+
     @GetMapping("/tree")
-    public ResponseEntity<ApiResponse<List<CategoryResponse>>> getCategoryTree() {
-        return ResponseEntity.ok(ApiResponse.success(categoryService.getRootCategoriesWithChildren()));
+    public ResponseEntity<ApiResponse<List<CategoryTreeResponse>>> getCategoryTree() {
+        return ResponseEntity.ok(ApiResponse.success(categoryService.getCategoryTree()));
     }
 
     @GetMapping("/{id}")

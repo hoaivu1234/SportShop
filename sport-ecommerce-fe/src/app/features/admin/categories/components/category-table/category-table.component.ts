@@ -1,39 +1,67 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CategoryService } from '../../services/category.service';
 import { CategoryStoreService } from '../../services/category-store.service';
 import { CategoryFormComponent } from '../category-form/category-form.component';
+import { PaginationComponent } from '../../../../../shared/components/pagination/pagination.component';
+import { PaginationParams } from '../../../../../models/pagination.model';
+import { NoResultsComponent } from '../../../../search/components/no-results/no-results.component';
 
 @Component({
   selector: 'app-category-table',
   standalone: true,
-  imports: [CommonModule, CategoryFormComponent],
+  imports: [CommonModule, CategoryFormComponent, PaginationComponent, NoResultsComponent],
   templateUrl: './category-table.component.html',
   styleUrl: './category-table.component.css',
 })
 export class CategoryTableComponent implements OnInit {
-  categoryServices = inject(CategoryService);
-  categoryStore = inject(CategoryStoreService);
-  mode: string = 'edit';
+  private readonly categoryService = inject(CategoryService);
+  readonly categoryStore = inject(CategoryStoreService);
+
+  readonly mode = 'edit';
   showModal = false;
   selectedCategory: any = null;
 
-  categories = this.categoryStore.categories;
+  readonly categories = this.categoryStore.categories;
+  readonly totalElements = this.categoryStore.totalElements;
+
+  pagination = signal<PaginationParams>({
+    page: 0,
+    size: 5,
+    sort: 'createdAt',
+    direction: 'desc',
+  });
 
   ngOnInit(): void {
-    this.categoryServices.getFlatCategories().subscribe({
-      next: (response) => {
-        this.categoryStore.setCategories(response.data.content);
+    this.loadCategories();
+  }
+
+  loadCategories(): void {
+    this.categoryService.getFlatCategories(this.pagination()).subscribe({
+      next: (res) => {
+        this.categoryStore.setCategories(res.data.content);
+        this.categoryStore.setTotalElements(res.data.totalElements);
       },
-      error: (error) => {
-        console.error('Error fetching categories:', error);
-      },
+      error: (err) => console.error('Error fetching categories:', err),
     });
   }
 
-  openModal(cat: any) { 
-    this.showModal = true; 
-    this.selectedCategory = cat;
+  onPageChange(page: number): void {
+    this.pagination.update(p => ({ ...p, page }));
+    this.loadCategories();
   }
-  closeModal() { this.showModal = false; }
+
+  openModal(cat: any): void {
+    this.selectedCategory = cat;
+    this.showModal = true;
+  }
+
+  closeModal(): void {
+    this.showModal = false;
+  }
+
+  /** After a successful save, refresh the table to reflect the latest data */
+  onSaved(): void {
+    this.loadCategories();
+  }
 }

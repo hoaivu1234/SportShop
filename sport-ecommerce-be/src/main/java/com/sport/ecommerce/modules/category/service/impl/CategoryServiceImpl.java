@@ -4,6 +4,7 @@ import com.sport.ecommerce.common.dto.response.PageResponse;
 import com.sport.ecommerce.exception.custom.BusinessException;
 import com.sport.ecommerce.modules.category.dto.request.CategoryRequest;
 import com.sport.ecommerce.modules.category.dto.response.CategoryResponse;
+import com.sport.ecommerce.modules.category.dto.response.CategoryTreeResponse;
 import com.sport.ecommerce.modules.category.entity.Category;
 import com.sport.ecommerce.modules.category.mapper.CategoryMapper;
 import com.sport.ecommerce.modules.category.repository.CategoryRepository;
@@ -15,7 +16,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -35,8 +39,67 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<CategoryResponse> getRootCategoriesWithChildren() {
-        return categoryMapper.toResponseList(categoryRepository.findAllRootCategoriesWithChildren());
+    public List<CategoryTreeResponse> getCategoryTree() {
+        List<CategoryResponse> flat = categoryRepository.findAllFlat();
+        return buildTree(flat);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CategoryResponse> getAllFlat() {
+        return categoryRepository.findAllFlat();
+    }
+
+    // ── Tree builder (O(n), 3-pass) ──────────────────────────────────────────
+    // Uses the same algorithm as the old frontend buildTree — now lives here.
+    // Pass 1: create CategoryTreeResponse nodes from flat list
+    // Pass 2: wire children to parents; orphan nodes become roots
+    // Pass 3: post-order DFS to compute totalProductCount up the tree
+    private List<CategoryTreeResponse> buildTree(List<CategoryResponse> flat) {
+        Map<Long, CategoryTreeResponse> nodeMap = new HashMap<>();
+
+        // Pass 1 — create all nodes
+        for (CategoryResponse item : flat) {
+            long directCount = item.getProductCount() != null ? item.getProductCount() : 0L;
+            nodeMap.put(item.getId(), CategoryTreeResponse.builder()
+                    .id(item.getId())
+                    .name(item.getName())
+                    .slug(item.getSlug())
+                    .productCount(directCount)
+                    .totalProductCount(directCount)
+                    .children(new ArrayList<>())
+                    .build());
+        }
+
+        // Pass 2 — wire children to parents
+        List<CategoryTreeResponse> roots = new ArrayList<>();
+        for (CategoryResponse item : flat) {
+            CategoryTreeResponse node = nodeMap.get(item.getId());
+            if (item.getParentId() == null) {
+                roots.add(node);
+            } else {
+                CategoryTreeResponse parent = nodeMap.get(item.getParentId());
+                if (parent != null) {
+                    parent.getChildren().add(node);
+                } else {
+                    roots.add(node); // orphan → treat as root
+                }
+            }
+        }
+
+        // Pass 3 — post-order DFS: compute totalProductCount
+        roots.forEach(this::sumTotals);
+
+        return roots;
+    }
+
+    private long sumTotals(CategoryTreeResponse node) {
+        long total = node.getProductCount();
+        for (CategoryTreeResponse child : node.getChildren()) {
+            total += sumTotals(child);
+        }
+        node.setTotalProductCount(total);
+        return total;
     }
 
     @Override

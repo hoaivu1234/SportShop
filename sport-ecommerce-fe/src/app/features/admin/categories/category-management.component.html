@@ -18,33 +18,64 @@
     <div class="tree-panel">
       <div class="tree-header">STRUCTURE</div>
 
-      <div class="tree-list">
-        @for (item of treeItems; track item.name) {
-          <div class="tree-node">
-            <div class="tree-node-row" (click)="toggleTree(item)">
-              <i class="fas fa-chevron-right tree-arrow" [class.expanded]="item.expanded"></i>
-              <i class="fas {{ item.icon }} tree-icon"></i>
-              <span class="tree-name">{{ item.name }}</span>
-              <span class="tree-count">{{ item.products }}</span>
-            </div>
-            @if (item.expanded && item.children.length > 0) {
-              <div class="tree-children">
-                @for (child of item.children; track child) {
-                  <div class="tree-child-row">
-                    <i class="fas fa-minus tree-child-icon"></i>
-                    <span>{{ child }}</span>
-                  </div>
-                }
-              </div>
+      <!--
+        Recursive ng-template — supports unlimited depth.
+        Context variables:
+          $implicit → current CategoryTreeNode
+          depth     → nesting level (0 = root), used for left-padding
+      -->
+      <ng-template #treeNode let-node let-depth="depth">
+        <div class="tree-node">
+          <div
+            class="tree-node-row"
+            [style.padding-left.px]="12 + depth * 14"
+            (click)="toggleTree(node.id)"
+          >
+            @if (node.children.length > 0) {
+              <i
+                class="fas fa-chevron-right tree-arrow"
+                [class.expanded]="isExpanded(node.id)"
+              ></i>
+            } @else {
+              <i class="fas fa-minus tree-arrow" style="opacity:0;pointer-events:none"></i>
             }
+            <i class="fas fa-folder tree-icon" [class.tree-icon--child]="depth > 0"></i>
+            <span class="tree-name">{{ node.name }}</span>
+            <span class="tree-count">{{ node.totalProductCount }}</span>
           </div>
+
+          @if (isExpanded(node.id) && node.children.length > 0) {
+            <div class="tree-children">
+              @for (child of node.children; track child.id) {
+                <ng-container
+                  [ngTemplateOutlet]="treeNode"
+                  [ngTemplateOutletContext]="{ $implicit: child, depth: depth + 1 }"
+                ></ng-container>
+              }
+            </div>
+          }
+        </div>
+      </ng-template>
+
+      <div class="tree-list">
+        @for (node of tree(); track node.id) {
+          <ng-container
+            [ngTemplateOutlet]="treeNode"
+            [ngTemplateOutletContext]="{ $implicit: node, depth: 0 }"
+          ></ng-container>
+        }
+
+        @if (tree().length === 0) {
+          <p style="font-size:12px;color:var(--color-gray);padding:8px 0">
+            No categories yet.
+          </p>
         }
       </div>
 
       <div class="tree-stats">
         <div class="stat-row">
           <span class="stat-label">Total Categories</span>
-          <span class="stat-value">24</span>
+          <span class="stat-value">{{ totalCategories().length }}</span>
         </div>
       </div>
     </div>
@@ -59,6 +90,6 @@
 
   <!-- Modal -->
   @if (showModal) {
-    <app-category-form [mode]="mode" (close)="closeModal()"></app-category-form>
+    <app-category-form [mode]="mode" (saved)="onSaved()" (close)="closeModal()"></app-category-form>
   }
 </div>

@@ -1,3 +1,7 @@
+// ── Requests ─────────────────────────────────────────────────────────────────
+
+import { SortDirection } from "./pagination.model";
+
 export interface ProductRequest {
   name: string;
   description?: string;
@@ -6,6 +10,10 @@ export interface ProductRequest {
   discountPrice?: number;
   categoryId?: number;
   status: string;
+  /** Images to save alongside the product (URLs already uploaded to Cloudinary) */
+  images?: ProductImageRequest[];
+  /** Variants to save alongside the product */
+  variants?: ProductVariantRequest[];
 }
 
 export interface ProductImageRequest {
@@ -21,6 +29,8 @@ export interface ProductVariantRequest {
   price: number;
   stock: number;
 }
+
+// ── Responses ─────────────────────────────────────────────────────────────────
 
 export interface ImageResponse {
   id: number;
@@ -58,4 +68,34 @@ export interface ProductDetailResponse {
   variants: VariantResponse[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ProductListResponse {
+  id: number;
+  name: string;
+  slug: string;
+  brand?: string;
+  price: number;
+  discountPrice?: number;
+  status: string;
+  mainImageUrl?: string;
+  totalStock?: number;
+  categoryId?: number;
+  categoryName?: string;
+  createdAt: string;
+}
+
+// ── Params ────────────────────────────────────────────────────────────────────
+
+export interface ProductListParams {
+  page: number;
+  size: number;
+  sort?: string;
+  direction?: SortDirection;
+  keyword?: string;
+  categoryId?: number;
+  status?: string;
+  brand?: string;
+  minPrice?: number;
+  maxPrice?: number;
 }

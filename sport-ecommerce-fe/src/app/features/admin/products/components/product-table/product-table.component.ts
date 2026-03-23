@@ -1,101 +1,101 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { ProductService } from '../../services/product.service';
+import { ProductListResponse } from '../../../../../models/product.model';
+import { PaginationComponent } from '../../../../../shared/components/pagination/pagination.component';
+import { ToastService } from '../../../../../core/services/toast.service';
+
+interface ProductRow extends ProductListResponse {
+  checked: boolean;
+}
 
 @Component({
   selector: 'app-product-table',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PaginationComponent],
   templateUrl: './product-table.component.html',
-  styleUrl: './product-table.component.css'
+  styleUrl: './product-table.component.css',
 })
-export class ProductTableComponent {
+export class ProductTableComponent implements OnInit {
+  private readonly productService = inject(ProductService);
+  private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
+
+  products = signal<ProductRow[]>([]);
+  totalElements = signal(0);
+  isLoading = signal(false);
+
+  page = signal(0);
+  readonly pageSize = 10;
+
   allChecked = false;
 
-  products = [
-    {
-      id: 1,
-      image: 'https://picsum.photos/seed/600/48/48',
-      name: 'Apex Velocity Running Shoes',
-      category: 'Footwear',
-      sku: 'AG-AV-992',
-      price: '$129.99',
-      stock: 42,
-      stockMax: 100,
-      stockClass: 'green',
-      status: 'Active',
-      statusClass: 'badge-active',
-      checked: false
-    },
-    {
-      id: 2,
-      image: 'https://picsum.photos/seed/601/48/48',
-      name: 'Quantum Compression Tee',
-      category: 'Apparel',
-      sku: 'AG-QC-412',
-      price: '$45.00',
-      stock: 8,
-      stockMax: 100,
-      stockClass: 'orange',
-      status: 'Low Stock',
-      statusClass: 'badge-low-stock',
-      checked: false
-    },
-    {
-      id: 3,
-      image: 'https://picsum.photos/seed/602/48/48',
-      name: 'Titanium Strength Kettlebell',
-      category: 'Equipment',
-      sku: 'AG-TS-20K',
-      price: '$89.00',
-      stock: 15,
-      stockMax: 100,
-      stockClass: 'green',
-      status: 'Active',
-      statusClass: 'badge-active',
-      checked: false
-    },
-    {
-      id: 4,
-      image: 'https://picsum.photos/seed/603/48/48',
-      name: 'AeroGlide Yoga Mat',
-      category: 'Accessories',
-      sku: 'AG-AY-001',
-      price: '$35.50',
-      stock: 0,
-      stockMax: 100,
-      stockClass: 'red',
-      status: 'Sold Out',
-      statusClass: 'badge-sold-out',
-      checked: false
-    },
-    {
-      id: 5,
-      image: 'https://picsum.photos/seed/604/48/48',
-      name: 'Peak Performance Shorts',
-      category: 'Apparel',
-      sku: 'AG-PP-882',
-      price: '$38.00',
-      stock: 124,
-      stockMax: 150,
-      stockClass: 'green',
-      status: 'Draft',
-      statusClass: 'badge-draft',
-      checked: false
-    },
-  ];
+  ngOnInit(): void {
+    this.loadProducts();
+  }
 
-  toggleAll(event: Event) {
+  loadProducts(): void {
+    this.isLoading.set(true);
+    this.productService.getProducts({
+      page: this.page(),
+      size: this.pageSize,
+      sort: 'createdAt',
+      direction: 'desc',
+    }).subscribe({
+      next: (res) => {
+        this.products.set(res.data.content.map(p => ({ ...p, checked: false })));
+        this.totalElements.set(res.data.totalElements);
+        this.allChecked = false;
+      },
+      error: () => this.toast.error('Failed to load products.'),
+      complete: () => this.isLoading.set(false),
+    });
+  }
+
+  onPageChange(newPage: number): void {
+    this.page.set(newPage);
+    this.loadProducts();
+  }
+
+  navigateToEdit(id: number): void {
+    this.router.navigate(['/admin/products', id, 'edit']);
+  }
+
+  deleteProduct(id: number): void {
+    if (!confirm('Are you sure you want to delete this product?')) return;
+    this.productService.deleteProduct(id).subscribe({
+      next: () => {
+        this.toast.success('Product deleted.');
+        this.loadProducts();
+      },
+      error: () => this.toast.error('Failed to delete product.'),
+    });
+  }
+
+  toggleAll(event: Event): void {
     const checked = (event.target as HTMLInputElement).checked;
     this.allChecked = checked;
-    this.products.forEach(p => p.checked = checked);
+    this.products.update(list => list.map(p => ({ ...p, checked })));
   }
 
-  toggleOne() {
-    this.allChecked = this.products.every(p => p.checked);
+  toggleOne(): void {
+    this.allChecked = this.products().every(p => p.checked);
   }
 
-  getStockPercent(stock: number, max: number): number {
-    return Math.min(100, (stock / max) * 100);
+  statusBadgeClass(status: string): string {
+    switch (status?.toUpperCase()) {
+      case 'ACTIVE':   return 'badge-active';
+      case 'INACTIVE': return 'badge-inactive';
+      case 'DRAFT':    return 'badge-draft';
+      default:         return 'badge-draft';
+    }
+  }
+
+  stockClass(stock: number): string {
+    if (stock === 0)  return 'red';
+    if (stock <= 10)  return 'orange';
+    return 'green';
   }
 }

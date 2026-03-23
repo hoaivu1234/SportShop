@@ -29,6 +29,7 @@ export const PRODUCT_API = {
 export const CATEGORY_API = {
   BASE: `${API_BASE}/categories`,
   FLAT: `${API_BASE}/categories/flat`,
+  ALL: `${API_BASE}/categories/all`,
   BY_ID: (id: number | string) => `${API_BASE}/categories/${id}`,
   TREE: `${API_BASE}/categories/tree`,
 } as const;

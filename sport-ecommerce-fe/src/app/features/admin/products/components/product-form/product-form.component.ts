@@ -1,14 +1,26 @@
-import { Component, inject, signal, ElementRef, ViewChild } from '@angular/core';
+import {
+  Component,
+  inject,
+  signal,
+  computed,
+  OnInit,
+  ElementRef,
+  ViewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { ProductService } from '../../services/product.service';
+import { CategoryService, CategoryFlatResponse } from '../../../../../features/admin/categories/services/category.service';
 import { CloudinaryService } from '../../../../../core/services/cloudinary.service';
 import { ToastService } from '../../../../../core/services/toast.service';
+import { ProductImageRequest, ProductVariantRequest } from '../../../../../models/product.model';
 
 interface ImagePreview {
-  file: File;
+  /** Present for new (local) files that still need Cloudinary upload */
+  file: File | null;
+  /** base64 data URL for local files, or Cloudinary URL for existing images */
   previewUrl: string;
   isMain: boolean;
   sortOrder: number;
@@ -29,16 +41,25 @@ interface VariantRow {
   templateUrl: './product-form.component.html',
   styleUrl: './product-form.component.css',
 })
-export class ProductFormComponent {
+export class ProductFormComponent implements OnInit {
   @ViewChild('fileInput') fileInputRef!: ElementRef<HTMLInputElement>;
 
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly productService = inject(ProductService);
+  private readonly categoryService = inject(CategoryService);
   private readonly cloudinaryService = inject(CloudinaryService);
   private readonly toast = inject(ToastService);
 
-  // ── Form ─────────────────────────────────────────────────────────────────────
+  // ── Mode (create vs edit) ─────────────────────────────────────────────────
+  editProductId: number | null = null;
+  readonly isEditMode = computed(() => this.editProductId !== null);
+  readonly pageTitle = computed(() => this.isEditMode() ? 'Edit Product' : 'Create New Product');
+  readonly submitLabel = computed(() => this.isEditMode() ? 'Save Changes' : 'Create Product');
+  readonly submittingLabel = computed(() => this.isEditMode() ? 'Saving...' : 'Creating...');
+
+  // ── Form ──────────────────────────────────────────────────────────────────
   form = this.fb.group({
     name: ['', [Validators.required, Validators.maxLength(255)]],
     description: [''],
@@ -49,17 +70,20 @@ export class ProductFormComponent {
     status: ['ACTIVE', Validators.required],
   });
 
-  // ── Images ───────────────────────────────────────────────────────────────────
+  // ── Images ────────────────────────────────────────────────────────────────
   images: ImagePreview[] = [];
 
-  // ── Variants ─────────────────────────────────────────────────────────────────
+  // ── Variants ──────────────────────────────────────────────────────────────
   sizeInput = '';
   colorInput = '';
   sizes: string[] = [];
   colors: string[] = [];
   variants: VariantRow[] = [];
 
-  // ── UI State ─────────────────────────────────────────────────────────────────
+  // ── Categories (for dropdown) ─────────────────────────────────────────────
+  categories: CategoryFlatResponse[] = [];
+
+  // ── UI State ──────────────────────────────────────────────────────────────
   isSubmitting = signal(false);
   isDragOver = signal(false);
 
@@ -76,7 +100,67 @@ export class ProductFormComponent {
     { icon: 'fa-circle-info', color: '#3b82f6', text: 'Add sizes and/or colors, then click "Generate Combinations".' },
   ];
 
-  // ── Helpers ──────────────────────────────────────────────────────────────────
+  // ── Lifecycle ─────────────────────────────────────────────────────────────
+
+  ngOnInit(): void {
+    // Load categories for the dropdown
+    this.categoryService.getAllCategories().subscribe({
+      next: (res) => (this.categories = res.data),
+      error: () => console.error('Failed to load categories'),
+    });
+
+    // Check if we are in edit mode
+    const idParam = this.route.snapshot.paramMap.get('id');
+    if (idParam) {
+      this.editProductId = Number(idParam);
+      this.loadProductForEdit(this.editProductId);
+    }
+  }
+
+  private loadProductForEdit(id: number): void {
+    this.productService.getProductById(id).subscribe({
+      next: (res) => {
+        const p = res.data;
+        this.form.patchValue({
+          name: p.name,
+          description: p.description ?? '',
+          brand: p.brand ?? '',
+          price: p.price,
+          discountPrice: p.discountPrice ?? null,
+          categoryId: p.category?.id ?? null,
+          status: p.status,
+        });
+
+        // Populate images — existing images have a URL, no local file
+        this.images = (p.images ?? []).map((img, i) => ({
+          file: null,
+          previewUrl: img.imageUrl,
+          isMain: img.isMain,
+          sortOrder: img.sortOrder ?? i,
+        }));
+
+        // Populate variants
+        this.variants = (p.variants ?? []).map(v => ({
+          size: v.size ?? '',
+          color: v.color ?? '',
+          sku: v.sku,
+          price: v.price,
+          stock: v.stock,
+        }));
+
+        // Rebuild size/color sets from existing variants
+        this.sizes = [...new Set(this.variants.map(v => v.size).filter(Boolean))];
+        this.colors = [...new Set(this.variants.map(v => v.color).filter(Boolean))];
+      },
+      error: () => {
+        this.toast.error('Failed to load product. Please try again.');
+        this.router.navigate(['/admin/products']);
+      },
+    });
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
   fc(name: string): AbstractControl {
     return this.form.get(name)!;
   }
@@ -86,7 +170,8 @@ export class ProductFormComponent {
     return c.invalid && c.touched && c.hasError(error);
   }
 
-  // ── Image Handlers ──────────────────────────────────────────────────────────
+  // ── Image Handlers ────────────────────────────────────────────────────────
+
   openFilePicker(): void {
     this.fileInputRef.nativeElement.click();
   }
@@ -163,12 +248,11 @@ export class ProductFormComponent {
     this.images = arr;
   }
 
-  // ── Variant Handlers ─────────────────────────────────────────────────────────
+  // ── Variant Handlers ──────────────────────────────────────────────────────
+
   addSize(): void {
     const val = this.sizeInput.trim();
-    if (val && !this.sizes.includes(val)) {
-      this.sizes = [...this.sizes, val];
-    }
+    if (val && !this.sizes.includes(val)) this.sizes = [...this.sizes, val];
     this.sizeInput = '';
   }
 
@@ -185,9 +269,7 @@ export class ProductFormComponent {
 
   addColor(): void {
     const val = this.colorInput.trim();
-    if (val && !this.colors.includes(val)) {
-      this.colors = [...this.colors, val];
-    }
+    if (val && !this.colors.includes(val)) this.colors = [...this.colors, val];
     this.colorInput = '';
   }
 
@@ -207,23 +289,17 @@ export class ProductFormComponent {
 
     const sizesToUse = this.sizes.length > 0 ? this.sizes : [''];
     const colorsToUse = this.colors.length > 0 ? this.colors : [''];
-
-    const existingMap = new Map(
-      this.variants.map(v => [`${v.size}|${v.color}`, v])
-    );
-
+    const existingMap = new Map(this.variants.map(v => [`${v.size}|${v.color}`, v]));
     const newVariants: VariantRow[] = [];
+
     for (const size of sizesToUse) {
       for (const color of colorsToUse) {
         const key = `${size}|${color}`;
         if (existingMap.has(key)) {
           newVariants.push(existingMap.get(key)!);
         } else {
-          const namePrefix = (this.form.value.name ?? 'SKU')
-            .slice(0, 8)
-            .toUpperCase()
-            .replace(/\s+/g, '-');
-          const parts = [namePrefix, size, color].filter(Boolean).join('-');
+          const prefix = (this.form.value.name ?? 'SKU').slice(0, 8).toUpperCase().replace(/\s+/g, '-');
+          const parts = [prefix, size, color].filter(Boolean).join('-');
           newVariants.push({
             size,
             color,
@@ -245,7 +321,8 @@ export class ProductFormComponent {
     return `${variant.size}|${variant.color}`;
   }
 
-  // ── Submit ──────────────────────────────────────────────────────────────────
+  // ── Submit ────────────────────────────────────────────────────────────────
+
   async onSubmit(): Promise<void> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -256,58 +333,60 @@ export class ProductFormComponent {
     this.isSubmitting.set(true);
 
     try {
-      const v = this.form.value;
-
-      // Step 1: Create product
-      const productResp = await firstValueFrom(
-        this.productService.createProduct({
-          name: v.name!,
-          description: v.description || undefined,
-          brand: v.brand || undefined,
-          price: v.price!,
-          discountPrice: v.discountPrice ?? undefined,
-          categoryId: v.categoryId ?? undefined,
-          status: v.status ?? 'ACTIVE',
-        })
-      );
-      const productId = productResp.data.id;
-
-      // Steps 2 & 3: Upload images to Cloudinary, then save metadata to backend
+      // Step 1: Upload any new (local) images to Cloudinary, reuse URLs for existing ones
+      const uploadedImages: ProductImageRequest[] = [];
       for (let i = 0; i < this.images.length; i++) {
         const img = this.images[i];
-        const cloudResp = await firstValueFrom(
-          this.cloudinaryService.uploadImage(img.file)
-        );
-        await firstValueFrom(
-          this.productService.createImage(productId, {
-            imageUrl: cloudResp.secure_url,
-            isMain: img.isMain,
-            sortOrder: i,
-          })
-        );
+        let imageUrl: string;
+
+        if (img.file) {
+          // New file — upload to Cloudinary
+          const cloudResp = await firstValueFrom(this.cloudinaryService.uploadImage(img.file));
+          imageUrl = cloudResp.secure_url;
+        } else {
+          // Existing image — URL is already in previewUrl
+          imageUrl = img.previewUrl;
+        }
+
+        uploadedImages.push({ imageUrl, isMain: img.isMain, sortOrder: i });
       }
 
-      // Step 4: Create variants
-      for (const variant of this.variants) {
-        if (!variant.price || variant.price <= 0) continue;
-        await firstValueFrom(
-          this.productService.createVariant(productId, {
-            sku: variant.sku,
-            size: variant.size || undefined,
-            color: variant.color || undefined,
-            price: variant.price,
-            stock: variant.stock,
-          })
-        );
+      // Step 2: Filter valid variants
+      const validVariants: ProductVariantRequest[] = this.variants
+        .filter(v => v.price != null && v.price > 0)
+        .map(v => ({
+          sku: v.sku,
+          size: v.size || undefined,
+          color: v.color || undefined,
+          price: v.price!,
+          stock: v.stock,
+        }));
+
+      // Step 3: Single API call — product + images + variants together
+      const v = this.form.value;
+      const request = {
+        name: v.name!,
+        description: v.description || undefined,
+        brand: v.brand || undefined,
+        price: v.price!,
+        discountPrice: v.discountPrice ?? undefined,
+        categoryId: v.categoryId ?? undefined,
+        status: v.status ?? 'ACTIVE',
+        images: uploadedImages,
+        variants: validVariants,
+      };
+
+      if (this.isEditMode()) {
+        await firstValueFrom(this.productService.updateProduct(this.editProductId!, request));
+        this.toast.success('Product updated successfully!');
+      } else {
+        await firstValueFrom(this.productService.createProduct(request));
+        this.toast.success('Product created successfully!');
       }
 
-      this.toast.success('Product created successfully!', 'Success');
       this.router.navigate(['/admin/products']);
     } catch (err: any) {
-      const msg =
-        err?.error?.resolvedMessage ??
-        err?.error?.message ??
-        'Failed to create product. Please try again.';
+      const msg = err?.error?.resolvedMessage ?? err?.error?.message ?? 'Failed to save product. Please try again.';
       this.toast.error(msg);
     } finally {
       this.isSubmitting.set(false);

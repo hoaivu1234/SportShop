@@ -1,39 +1,37 @@
-import { inject, Injectable, signal } from '@angular/core';
-import { CategoryFlatResponse, CategoryResponse } from './category.service';
+import { Injectable, signal } from '@angular/core';
+import { CategoryFlatResponse, CategoryTreeNode } from './category.service';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class CategoryStoreService {
-  private _categories = signal<any[]>([]);
+
+  // ── Paginated flat list (table) ────────────────────────────────────────────
+  private _categories = signal<CategoryFlatResponse[]>([]);
+  private _totalElements = signal(0);
 
   readonly categories = this._categories.asReadonly();
+  readonly totalElements = this._totalElements.asReadonly();
 
-  setCategories(value: any[]) {
+  setCategories(value: CategoryFlatResponse[]): void {
     this._categories.set(value);
   }
 
-  addCategory(newCategory: CategoryResponse) {
-    const flat = this.mapToFlat(newCategory);
-
-    this._categories.update((prev) => [flat, ...prev]);
+  setTotalElements(value: number): void {
+    this._totalElements.set(value);
   }
 
-  updateCategory(updatedCategory: CategoryResponse) {
-    const flat = this.mapToFlat(updatedCategory);
+  // ── Tree — built by backend, stored as-is ─────────────────────────────────
+  private _tree = signal<CategoryTreeNode[]>([]);
+  readonly tree = this._tree.asReadonly();
 
-    this._categories.update((prev) => prev.map((cat) => (cat.id === flat.id ? flat : cat)));
+  setTree(value: CategoryTreeNode[]): void {
+    this._tree.set(value);
   }
 
-  private mapToFlat(category: CategoryResponse): CategoryFlatResponse {
-    return {
-      id: category.id,
-      name: category.name,
-      createdAt: category.createdAt,
-      productCount: 0,
-      slug: category.slug,
-      parentId: category.parentId,
-      parentName: category.parentName,
-    };
+  // ── All categories flat — used for the parent dropdown ────────────────────
+  private _allFlat = signal<CategoryFlatResponse[]>([]);
+  readonly allFlat = this._allFlat.asReadonly();
+
+  setAllFlat(value: CategoryFlatResponse[]): void {
+    this._allFlat.set(value);
   }
 }

@@ -6,7 +6,8 @@
       "Bash(ls:*)",
       "Bash(grep -r API_PREFIX D:Ca_nhanSportEcommercesport-ecommerce-besrcmainjavacomsportecommercecommon --include=*.java -l)",
       "Bash(npx tsc:*)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(wc -l D:Ca_nhanSportEcommercesport-ecommerce-fe/src/app/**/*.ts)"
     ]
   }
 }

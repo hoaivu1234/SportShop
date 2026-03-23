@@ -3,7 +3,7 @@
   <!-- Page Header -->
   <div class="page-header">
     <div>
-      <h1 class="page-title">Create New Product</h1>
+      <h1 class="page-title">{{ pageTitle() }}</h1>
       <p class="page-subtitle">Fill in the details below to add a new product to your store.</p>
     </div>
     <div class="header-actions">
@@ -17,7 +17,7 @@
         [disabled]="isSubmitting()"
       >
         <i class="fas" [class.fa-floppy-disk]="!isSubmitting()" [class.fa-spinner]="isSubmitting()" [class.fa-spin]="isSubmitting()"></i>
-        {{ isSubmitting() ? 'Creating...' : 'Create Product' }}
+        {{ isSubmitting() ? submittingLabel() : submitLabel() }}
       </button>
     </div>
   </div>
@@ -69,14 +69,13 @@
             />
           </div>
           <div class="form-group">
-            <label>Category ID</label>
-            <input
-              type="number"
-              class="form-input"
-              formControlName="categoryId"
-              placeholder="Enter category ID"
-              min="1"
-            />
+            <label>Category</label>
+            <select class="form-select" formControlName="categoryId">
+              <option [ngValue]="null">— No category —</option>
+              <option *ngFor="let cat of categories" [ngValue]="cat.id">
+                {{ cat.parentName ? '↳ ' + cat.name : cat.name }}
+              </option>
+            </select>
           </div>
         </div>
 
@@ -367,7 +366,7 @@
 
       <!-- Section: Submit Summary -->
       <div class="form-card">
-        <div class="card-section-title">CREATION SUMMARY</div>
+        <div class="card-section-title">{{ isEditMode() ? 'EDIT SUMMARY' : 'CREATION SUMMARY' }}</div>
         <div class="summary-list">
           <div class="summary-item">
             <span class="summary-label">Images</span>
@@ -398,7 +397,7 @@
           [disabled]="isSubmitting()"
         >
           <i class="fas" [class.fa-floppy-disk]="!isSubmitting()" [class.fa-spinner]="isSubmitting()" [class.fa-spin]="isSubmitting()"></i>
-          {{ isSubmitting() ? 'Creating product...' : 'Create Product' }}
+          {{ isSubmitting() ? submittingLabel() : submitLabel() }}
         </button>
         <button
           class="btn btn-ghost btn-full-width mt-10"

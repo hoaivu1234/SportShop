@@ -7,78 +7,84 @@
         </th>
         <th class="col-image">Image</th>
         <th class="col-details">Product Details</th>
-        <th class="col-sku">SKU</th>
         <th class="col-price">Price</th>
-        <th class="col-stock">Stock Level</th>
+        <th class="col-stock">Stock</th>
         <th class="col-status">Status</th>
         <th class="col-actions">Actions</th>
       </tr>
     </thead>
     <tbody>
-      @for (product of products; track product.id) {
-        <tr [class.selected]="product.checked">
-          <td class="col-check">
-            <input type="checkbox" [(ngModel)]="product.checked" (change)="toggleOne()" />
-          </td>
-          <td class="col-image">
-            <img [src]="product.image" [alt]="product.name" class="product-img" />
-          </td>
-          <td class="col-details">
-            <div class="product-name">{{ product.name }}</div>
-            <div class="product-category">{{ product.category }}</div>
-          </td>
-          <td class="col-sku">
-            <span class="sku-code">{{ product.sku }}</span>
-          </td>
-          <td class="col-price">
-            <span class="price">{{ product.price }}</span>
-          </td>
-          <td class="col-stock">
-            <div class="stock-info">
-              <span class="stock-count">{{ product.stock }} units</span>
-              <div class="stock-bar-bg">
-                <div
-                  class="stock-bar stock-bar-{{ product.stockClass }}"
-                  [style.width]="getStockPercent(product.stock, product.stockMax) + '%'"
-                ></div>
-              </div>
-            </div>
-          </td>
-          <td class="col-status">
-            <span class="status-badge {{ product.statusClass }}">{{ product.status }}</span>
-          </td>
-          <td class="col-actions">
-            <div class="action-btns">
-              <button class="action-btn" title="View">
-                <i class="fas fa-eye"></i>
-              </button>
-              <button class="action-btn" title="Edit">
-                <i class="fas fa-pen"></i>
-              </button>
-              <button class="action-btn" title="More">
-                <i class="fas fa-ellipsis-vertical"></i>
-              </button>
-            </div>
+      @if (isLoading()) {
+        <tr>
+          <td colspan="7" style="text-align:center;padding:32px;color:var(--color-gray)">
+            <i class="fas fa-spinner fa-spin"></i> Loading...
           </td>
         </tr>
+      } @else if (products().length === 0) {
+        <tr>
+          <td colspan="7" style="text-align:center;padding:32px;color:var(--color-gray)">
+            No products found.
+          </td>
+        </tr>
+      } @else {
+        @for (product of products(); track product.id) {
+          <tr [class.selected]="product.checked">
+            <td class="col-check">
+              <input type="checkbox" [(ngModel)]="product.checked" (change)="toggleOne()" />
+            </td>
+            <td class="col-image">
+              <img
+                [src]="product.mainImageUrl || 'assets/images/placeholder.png'"
+                [alt]="product.name"
+                class="product-img"
+              />
+            </td>
+            <td class="col-details">
+              <div class="product-name">{{ product.name }}</div>
+              <div class="product-category">{{ product.categoryName || '—' }}</div>
+            </td>
+            <td class="col-price">
+              <span class="price">${{ product.price | number:'1.2-2' }}</span>
+              @if (product.discountPrice) {
+                <span class="discount-price">${{ product.discountPrice | number:'1.2-2' }}</span>
+              }
+            </td>
+            <td class="col-stock">
+              <div class="stock-info">
+                <span class="stock-count">{{ product.totalStock ?? 0 }} units</span>
+                <div class="stock-bar-bg">
+                  <div
+                    class="stock-bar stock-bar-{{ stockClass(product.totalStock ?? 0) }}"
+                    [style.width]="(product.totalStock ?? 0) > 0 ? '60%' : '0%'"
+                  ></div>
+                </div>
+              </div>
+            </td>
+            <td class="col-status">
+              <span class="status-badge {{ statusBadgeClass(product.status) }}">
+                {{ product.status }}
+              </span>
+            </td>
+            <td class="col-actions">
+              <div class="action-btns">
+                <button class="action-btn" title="Edit" (click)="navigateToEdit(product.id)">
+                  <i class="fas fa-pen"></i>
+                </button>
+                <button class="action-btn action-btn--danger" title="Delete" (click)="deleteProduct(product.id)">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
       }
     </tbody>
   </table>
 </div>
 
-<!-- Pagination -->
-<div class="pagination">
-  <button class="page-btn" disabled>
-    <i class="fas fa-chevron-left"></i> Previous
-  </button>
-  <div class="page-numbers">
-    <button class="page-num active">1</button>
-    <button class="page-num">2</button>
-    <button class="page-num">3</button>
-    <span class="page-ellipsis">…</span>
-    <button class="page-num">250</button>
-  </div>
-  <button class="page-btn">
-    Next <i class="fas fa-chevron-right"></i>
-  </button>
-</div>
+<app-pagination
+  [currentPage]="page()"
+  [pageSize]="pageSize"
+  [totalElements]="totalElements()"
+  (pageChange)="onPageChange($event)"
+/>

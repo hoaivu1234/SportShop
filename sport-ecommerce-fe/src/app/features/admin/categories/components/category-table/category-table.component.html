@@ -37,22 +37,15 @@
     <app-category-form
       [mode]="mode"
       [category]="selectedCategory"
+      (saved)="onSaved()"
       (close)="closeModal()"
     ></app-category-form>
   }
 </div>
 
-<div class="table-footer">
-  <span class="showing-text">Showing 5 of 24 categories</span>
-  <div class="pagination">
-    <button class="page-btn" disabled>
-      <i class="fas fa-chevron-left"></i>
-    </button>
-    <button class="page-num active">1</button>
-    <button class="page-num">2</button>
-    <button class="page-num">3</button>
-    <button class="page-btn">
-      <i class="fas fa-chevron-right"></i>
-    </button>
-  </div>
-</div>
+<app-pagination
+  [currentPage]="pagination().page"
+  [pageSize]="pagination().size"
+  [totalElements]="totalElements()"
+  (pageChange)="onPageChange($event)"
+/>

@@ -15,8 +15,8 @@ export class CloudinaryService {
   private readonly http = inject(HttpClient);
 
   // TODO: Replace with your actual Cloudinary credentials before deploying
-  private readonly cloudName = 'YOUR_CLOUD_NAME';
-  private readonly uploadPreset = 'YOUR_UPLOAD_PRESET';
+  private readonly cloudName = 'dezksnpfz';
+  private readonly uploadPreset = 'sport-shop';
 
   uploadImage(file: File): Observable<CloudinaryUploadResponse> {
     const formData = new FormData();

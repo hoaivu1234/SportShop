@@ -3,12 +3,8 @@ import {
   Output,
   EventEmitter,
   inject,
-  Input,
-  Signal,
-  signal,
   input,
   computed,
-  OnInit,
   effect,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -32,35 +28,33 @@ import { ToastService } from '../../../../../core/services/toast.service';
 })
 export class CategoryFormComponent {
   @Output() close = new EventEmitter<void>();
-  @Output() created = new EventEmitter<any>();
+  /** Emitted after a successful create or update — parent should reload data */
+  @Output() saved = new EventEmitter<void>();
+
   mode = input<string>('create');
   category = input<any | null>(null);
 
   form: FormGroup;
-  categories: any;
+
   titleModal = computed(() =>
     this.mode() === 'edit' ? 'Edit Category' : 'New Category',
   );
 
+  /** All categories except the one being edited (prevents self-parent) */
   filteredCategories = computed(() => {
-    const categories = this.categories();
+    const all = this.categoryStore.allFlat();
     const cat = this.category();
-
-    if (this.mode() === 'edit' && cat) {
-      return categories.filter((c: any) => c.id !== cat.id);
-    }
-
-    return categories;
+    return this.mode() === 'edit' && cat
+      ? all.filter((c: any) => c.id !== cat.id)
+      : all;
   });
 
-  constructor(
-    private fb: FormBuilder,
-    private categoryStoreService: CategoryStoreService,
-    private categoryService: CategoryService,
-    private toastService: ToastService,
-  ) {
-    this.categories = this.categoryStoreService.categories;
+  private readonly fb = inject(FormBuilder);
+  private readonly categoryStore = inject(CategoryStoreService);
+  private readonly categoryService = inject(CategoryService);
+  private readonly toastService = inject(ToastService);
 
+  constructor() {
     this.form = this.fb.group({
       name: ['', [Validators.required]],
       parentId: [null],
@@ -68,61 +62,43 @@ export class CategoryFormComponent {
 
     effect(() => {
       const cat = this.category();
-      const categories = this.categories();
-
       if (cat) {
-        const found = categories.find((c: any) => c.name === cat.name);
-
-        this.form.patchValue({
-          name: cat.name,
-          parentId: found?.parentId ?? null,
-        });
+        this.form.patchValue({ name: cat.name, parentId: cat.parentId ?? null });
       } else {
-        this.form.reset({
-          name: '',
-          parentId: null,
-        });
+        this.form.reset({ name: '', parentId: null });
       }
     });
   }
 
-  onSubmit() {
-    if (this.form.valid) {
-      if (this.mode() === 'create') {
-        this.categoryService.createCategory(this.form.value).subscribe({
-          next: (res) => {
-            this.categoryStoreService.addCategory(res.data);
-            this.toastService.success('Category created successfully!');
-            this.onCancel();
-          },
-          error: (error) => {
-            console.error('Error creating category:', error);
-            this.toastService.error(
-              'Failed to create category. Please try again.',
-            );
-          },
-        });
-      } else {
-        this.categoryService
-          .updateCategory(this.category().id, this.form.value)
-          .subscribe({
-            next: (res) => {
-              this.categoryStoreService.updateCategory(res.data);
-              this.toastService.success('Category updated successfully!');
-              this.onCancel();
-            },
-            error: (error) => {
-              console.error('Error updating category:', error);
-              this.toastService.error(
-                'Failed to update category. Please try again.',
-              );
-            },
-          });
-      }
+  onSubmit(): void {
+    if (!this.form.valid) return;
+
+    if (this.mode() === 'create') {
+      this.categoryService.createCategory(this.form.value).subscribe({
+        next: () => {
+          this.toastService.success('Category created successfully!');
+          this.saved.emit();
+          this.close.emit();
+        },
+        error: () => {
+          this.toastService.error('Failed to create category. Please try again.');
+        },
+      });
+    } else {
+      this.categoryService.updateCategory(this.category().id, this.form.value).subscribe({
+        next: () => {
+          this.toastService.success('Category updated successfully!');
+          this.saved.emit();
+          this.close.emit();
+        },
+        error: () => {
+          this.toastService.error('Failed to update category. Please try again.');
+        },
+      });
     }
   }
 
-  onCancel() {
+  onCancel(): void {
     this.close.emit();
   }
 }

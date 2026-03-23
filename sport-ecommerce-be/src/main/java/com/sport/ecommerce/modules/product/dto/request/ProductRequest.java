@@ -1,5 +1,6 @@
 package com.sport.ecommerce.modules.product.dto.request;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -7,6 +8,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 public class ProductRequest {
@@ -29,4 +32,12 @@ public class ProductRequest {
     private Long categoryId;
 
     private String status = "ACTIVE";
+
+    /** Images to create/replace alongside the product (optional) */
+    @Valid
+    private List<ProductImageRequest> images = new ArrayList<>();
+
+    /** Variants to create/replace alongside the product (optional) */
+    @Valid
+    private List<ProductVariantRequest> variants = new ArrayList<>();
 }

@@ -129,6 +129,11 @@
   flex-shrink: 0;
 }
 
+.tree-icon--child {
+  color: #fbbf24;
+  font-size: 11px;
+}
+
 .tree-name {
   font-size: 13px;
   font-weight: 600;

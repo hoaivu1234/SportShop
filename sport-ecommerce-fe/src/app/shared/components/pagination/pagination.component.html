@@ -1,0 +1,46 @@
+@if (totalElements() > 0) {
+  <div class="pagination-wrapper">
+
+    <!-- Summary -->
+    <p class="pagination-summary">
+      Showing <strong>{{ startItem() }}–{{ endItem() }}</strong> of <strong>{{ totalElements() }}</strong>
+    </p>
+
+    <!-- Controls -->
+    <nav class="pagination" aria-label="Phân trang">
+
+      <!-- Prev -->
+      <button
+        class="page-btn page-btn--nav"
+        [ngClass]="{ 'page-btn--disabled': isFirst() }"
+        [disabled]="isFirst()"
+        aria-label="Trang trước"
+        (click)="prev()"
+      >‹</button>
+
+      <!-- Pages -->
+      @for (page of pages(); track $index) {
+        @if (isEllipsis(page)) {
+          <span class="page-ellipsis">…</span>
+        } @else {
+          <button
+            class="page-btn"
+            [ngClass]="{ 'page-btn--active': page === currentPage() }"
+            [attr.aria-current]="page === currentPage() ? 'page' : null"
+            (click)="goTo(page)"
+          >{{ page + 1 }}</button>
+        }
+      }
+
+      <!-- Next -->
+      <button
+        class="page-btn page-btn--nav"
+        [ngClass]="{ 'page-btn--disabled': isLast() }"
+        [disabled]="isLast()"
+        aria-label="Trang sau"
+        (click)="next()"
+      >›</button>
+
+    </nav>
+  </div>
+}

@@ -24,16 +24,7 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<PageResponse<UserResponse>>> getUsers(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDir) {
-
-        Sort sort = sortDir.equalsIgnoreCase("asc")
-                ? Sort.by(sortBy).ascending()
-                : Sort.by(sortBy).descending();
-        Pageable pageable = PageRequest.of(page, size, sort);
+    public ResponseEntity<ApiResponse<PageResponse<UserResponse>>> getUsers(Pageable pageable) {
 
         return ResponseEntity.ok(ApiResponse.success(userService.getUsers(pageable)));
     }

@@ -41,6 +41,24 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     """)
     Page<CategoryResponse> findAllCategoriesExcludeChildren(Pageable pageable);
 
+    @Query("""
+    SELECT new com.sport.ecommerce.modules.category.dto.response.CategoryResponse(
+        c.id,
+        c.name,
+        c.slug,
+        p.id,
+        p.name,
+        COUNT(pr.id),
+        c.createdAt
+    )
+    FROM Category c
+    LEFT JOIN c.parent p
+    LEFT JOIN Product pr ON pr.category.id = c.id
+    GROUP BY c.id, c.name, c.slug, p.id, p.name, c.createdAt
+    ORDER BY c.name ASC
+    """)
+    List<CategoryResponse> findAllFlat();
+
     List<Category> findByParentId(Long parentId);
 
     boolean existsByName(String name);

@@ -54,6 +54,19 @@ export class ProductService {
     return this.http.delete<void>(PRODUCT_API.BY_ID(id));
   }
 
+  /**
+   * Downloads all products matching the given filters as a CSV Blob.
+   * Filters must match what the user has active in the product list.
+   */
+  exportProducts(params: { keyword?: string; categoryId?: number; brand?: string; status?: string }): Observable<Blob> {
+    return this.http.getBlob(PRODUCT_API.EXPORT, {
+      keyword: params.keyword,
+      categoryId: params.categoryId,
+      brand: params.brand,
+      status: params.status,
+    });
+  }
+
   // ── Granular image management (for fine-grained edits after creation) ──────
 
   createImage(productId: number, request: ProductImageRequest): Observable<ApiResponse<ImageResponse>> {

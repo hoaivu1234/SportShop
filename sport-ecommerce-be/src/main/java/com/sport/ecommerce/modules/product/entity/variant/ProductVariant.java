@@ -37,4 +37,7 @@ public class ProductVariant {
 
     private Integer stock;
 
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive = true;
+
 }

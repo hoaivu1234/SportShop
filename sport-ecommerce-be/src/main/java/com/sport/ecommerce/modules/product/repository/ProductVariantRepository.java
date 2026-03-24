@@ -2,6 +2,7 @@ package com.sport.ecommerce.modules.product.repository;
 
 import com.sport.ecommerce.modules.product.entity.variant.ProductVariant;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -34,6 +35,21 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
     /** Returns [productId, totalStock] rows for a batch of product IDs */
     @Query("SELECT pv.product.id, COALESCE(SUM(pv.stock), 0) FROM ProductVariant pv WHERE pv.product.id IN :ids GROUP BY pv.product.id")
     List<Object[]> sumStockByProductIds(@Param("ids") List<Long> ids);
+
+    List<ProductVariant> findByProductIdAndIsActiveTrue(Long productId);
+
+    /** Count how many cart_items reference this variant (native — avoids entity coupling) */
+    @Query(value = "SELECT COUNT(*) FROM cart_items WHERE product_variant_id = :id", nativeQuery = true)
+    long countCartItemsByVariantId(@Param("id") Long id);
+
+    /** Count how many order_items reference this variant (native — avoids entity coupling) */
+    @Query(value = "SELECT COUNT(*) FROM order_items WHERE product_variant_id = :id", nativeQuery = true)
+    long countOrderItemsByVariantId(@Param("id") Long id);
+
+    /** Soft-deactivates all variants when the parent product is soft-deleted */
+    @Modifying
+    @Query("UPDATE ProductVariant pv SET pv.isActive = false WHERE pv.product.id = :productId")
+    void deactivateByProductId(@Param("productId") Long productId);
 
     @Transactional
     void deleteByProductId(Long productId);

@@ -6,9 +6,14 @@ import com.sport.ecommerce.modules.product.dto.request.ProductRequest;
 import com.sport.ecommerce.modules.product.dto.response.ProductDetailResponse;
 import com.sport.ecommerce.modules.product.dto.response.ProductListResponse;
 
+import java.util.List;
+
 public interface ProductService {
 
     PageResponse<ProductListResponse> getProducts(ProductFilterRequest filter);
+
+    /** Returns ALL products matching the filter — no pagination, sorted by name. Used for CSV export. */
+    List<ProductListResponse> getProductsForExport(ProductFilterRequest filter);
 
     ProductDetailResponse getProductById(Long id);
 

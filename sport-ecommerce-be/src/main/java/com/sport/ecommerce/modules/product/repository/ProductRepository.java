@@ -34,4 +34,22 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
             FROM Product p WHERE p.slug = :slug AND p.id <> :excludeId
             """)
     boolean existsBySlugAndIdNot(@Param("slug") String slug, @Param("excludeId") Long excludeId);
+
+    // ── Soft-delete aware lookups ─────────────────────────────────────────────
+
+    /** Used by service for all single-product lookups — excludes soft-deleted rows */
+    Optional<Product> findByIdAndIsDeletedFalse(Long id);
+
+    /** Used by slug-based storefront lookups — excludes soft-deleted rows */
+    Optional<Product> findBySlugAndIsDeletedFalse(String slug);
+
+    /** Slug uniqueness check on CREATE — allows reuse of slugs from deleted products */
+    boolean existsBySlugAndIsDeletedFalse(String slug);
+
+    /** Slug uniqueness check on UPDATE — excludes self and deleted products */
+    @Query("""
+            SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END
+            FROM Product p WHERE p.slug = :slug AND p.id <> :excludeId AND p.isDeleted = false
+            """)
+    boolean existsBySlugAndIdNotAndIsDeletedFalse(@Param("slug") String slug, @Param("excludeId") Long excludeId);
 }

@@ -1,19 +1,31 @@
 <div class="product-images">
   <div class="product-images__main">
-    <img [src]="mainImage" alt="Product Main Image" class="product-images__main-img" />
+    <img
+      [src]="mainImage"
+      alt="Product Image"
+      class="product-images__main-img"
+      (error)="onImageError($event)"
+    />
   </div>
 
-  <div class="product-images__thumbnails">
-    @for (thumb of thumbnails; track $index) {
-      <button
-        class="product-images__thumb-btn"
-        [class.product-images__thumb-btn--active]="selectedIndex === $index"
-        (click)="selectThumbnail($index, thumb)"
-      >
-        <img [src]="thumb" [alt]="'Product view ' + ($index + 1)" class="product-images__thumb-img" />
-      </button>
-    }
-  </div>
+  @if (thumbnails.length > 1) {
+    <div class="product-images__thumbnails">
+      @for (thumb of thumbnails; track $index) {
+        <button
+          class="product-images__thumb-btn"
+          [class.product-images__thumb-btn--active]="selectedIndex === $index"
+          (click)="selectThumbnail($index)"
+        >
+          <img
+            [src]="thumb"
+            [alt]="'Product view ' + ($index + 1)"
+            class="product-images__thumb-img"
+            (error)="onImageError($event)"
+          />
+        </button>
+      }
+    </div>
+  }
 
   <!-- Feature Badges -->
   <div class="feature-badges">

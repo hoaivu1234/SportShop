@@ -30,9 +30,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Slf4j
 @Service
@@ -48,7 +51,63 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public PageResponse<ProductListResponse> getProducts(ProductFilterRequest filter) {
-        Specification<Product> spec = ProductSpecification.withFilters(
+
+        Specification<Product> spec = buildSpecification(filter);
+        Pageable pageable = buildPageable(filter);
+
+        Page<ProductListResponse> page = productRepository.findAll(spec, pageable)
+                .map(productMapper::toListResponse);
+
+        enrichProductData(page.getContent());
+
+        return PageResponse.of(page);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductListResponse> getProductsForExport(ProductFilterRequest filter) {
+
+        Specification<Product> spec = buildSpecification(filter);
+
+        List<ProductListResponse> responses = productRepository.findAll(spec, Sort.by(Sort.Direction.ASC, "name"))
+                .stream()
+                .map(productMapper::toListResponse)
+                .toList();
+
+        enrichProductData(responses);
+
+        return responses;
+    }
+
+    private void enrichProductData(List<ProductListResponse> products) {
+        List<Long> ids = products.stream()
+                .map(ProductListResponse::getId)
+                .toList();
+
+        if (ids.isEmpty()) return;
+
+        Map<Long, String> mainImages = productImageRepository.findMainImagesByProductIds(ids)
+                .stream()
+                .collect(Collectors.toMap(
+                        img -> img.getProduct().getId(),
+                        ProductImage::getImageUrl
+                ));
+
+        Map<Long, Integer> stockMap = productVariantRepository.sumStockByProductIds(ids)
+                .stream()
+                .collect(Collectors.toMap(
+                        row -> ((Number) row[0]).longValue(),
+                        row -> ((Number) row[1]).intValue()
+                ));
+
+        products.forEach(p -> {
+            p.setMainImageUrl(mainImages.get(p.getId()));
+            p.setTotalStock(stockMap.getOrDefault(p.getId(), 0));
+        });
+    }
+
+    private Specification<Product> buildSpecification(ProductFilterRequest filter) {
+        return ProductSpecification.withFilters(
                 filter.getKeyword(),
                 filter.getCategoryId(),
                 filter.getBrand(),
@@ -56,36 +115,14 @@ public class ProductServiceImpl implements ProductService {
                 filter.getMinPrice(),
                 filter.getMaxPrice()
         );
+    }
 
-        Sort sort = Sort.by(Sort.Direction.fromString(filter.getSortDir()), filter.getSortBy());
-        Pageable pageable = PageRequest.of(filter.getPage(), filter.getSize(), sort);
-
-        Page<ProductListResponse> page = productRepository.findAll(spec, pageable)
-                .map(productMapper::toListResponse);
-
-        List<Long> ids = page.getContent().stream().map(ProductListResponse::getId).toList();
-
-        if (!ids.isEmpty()) {
-            // Batch load main images — one query instead of N queries
-            Map<Long, String> mainImages = productImageRepository.findMainImagesByProductIds(ids)
-                    .stream()
-                    .collect(Collectors.toMap(img -> img.getProduct().getId(), ProductImage::getImageUrl));
-
-            // Batch load total stock — one query instead of N queries
-            Map<Long, Integer> stockMap = productVariantRepository.sumStockByProductIds(ids)
-                    .stream()
-                    .collect(Collectors.toMap(
-                            row -> ((Number) row[0]).longValue(),
-                            row -> ((Number) row[1]).intValue()
-                    ));
-
-            page.getContent().forEach(p -> {
-                p.setMainImageUrl(mainImages.get(p.getId()));
-                p.setTotalStock(stockMap.getOrDefault(p.getId(), 0));
-            });
-        }
-
-        return PageResponse.of(page);
+    private Pageable buildPageable(ProductFilterRequest filter) {
+        Sort sort = Sort.by(
+                Sort.Direction.fromString(filter.getSortDir()),
+                filter.getSortBy()
+        );
+        return PageRequest.of(filter.getPage(), filter.getSize(), sort);
     }
 
     @Override
@@ -97,7 +134,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public ProductDetailResponse getProductBySlug(String slug) {
-        Product product = productRepository.findBySlug(slug)
+        Product product = productRepository.findBySlugAndIsDeletedFalse(slug)
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND.value(), "Product not found with slug: " + slug));
         return buildDetailResponse(product);
     }
@@ -131,10 +168,9 @@ public class ProductServiceImpl implements ProductService {
             saveImages(saved, request.getImages());
         }
 
-        // Replace variants when the request includes them
+        // Merge variants — update existing, insert new, soft/hard-delete removed
         if (request.getVariants() != null && !request.getVariants().isEmpty()) {
-            productVariantRepository.deleteByProductId(saved.getId());
-            saveVariants(saved, request.getVariants());
+            syncVariants(saved, request.getVariants());
         }
 
         return buildDetailResponse(saved);
@@ -143,17 +179,17 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public void deleteProduct(Long id) {
-        if (!productRepository.existsById(id)) {
-            throw new BusinessException(HttpStatus.NOT_FOUND.value(), "Product not found with id: " + id);
-        }
-        productRepository.deleteById(id);
+        Product product = findProductById(id); // throws 404 if not found or already deleted
+        productVariantRepository.deactivateByProductId(id); // deactivate all variants atomically
+        product.setIsDeleted(true);
+        productRepository.save(product);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private ProductDetailResponse buildDetailResponse(Product product) {
         List<ProductImage> images = productImageRepository.findByProductIdOrderBySortOrderAsc(product.getId());
-        List<ProductVariant> variants = productVariantRepository.findByProductId(product.getId());
+        List<ProductVariant> variants = productVariantRepository.findByProductIdAndIsActiveTrue(product.getId());
 
         ProductDetailResponse response = productMapper.toDetailResponse(product);
         response.setImages(productMapper.toImageResponseList(images));
@@ -181,6 +217,70 @@ public class ProductServiceImpl implements ProductService {
         }
     }
 
+    private void syncVariants(Product product, List<ProductVariantRequest> requests) {
+        List<ProductVariant> existing = productVariantRepository.findByProductId(product.getId());
+
+        Map<String, ProductVariant> existingBySku = existing.stream()
+                .collect(Collectors.toMap(ProductVariant::getSku, v -> v));
+
+        Set<String> incomingSkus = requests.stream()
+                .map(ProductVariantRequest::getSku)
+                .collect(Collectors.toSet());
+
+        List<ProductVariant> toSave = new ArrayList<>();
+        List<ProductVariant> toDelete = new ArrayList<>();
+
+        // INSERT + UPDATE
+        for (ProductVariantRequest req : requests) {
+            ProductVariant variant = existingBySku.get(req.getSku());
+
+            if (variant != null) {
+                // update
+                variant.setSize(req.getSize());
+                variant.setColor(req.getColor());
+                variant.setPrice(req.getPrice());
+                variant.setStock(req.getStock() != null ? req.getStock() : 0);
+                variant.setIsActive(true);
+            } else {
+                // insert
+                variant = new ProductVariant();
+                variant.setProduct(product);
+                variant.setSku(req.getSku());
+                variant.setSize(req.getSize());
+                variant.setColor(req.getColor());
+                variant.setPrice(req.getPrice());
+                variant.setStock(req.getStock() != null ? req.getStock() : 0);
+                variant.setIsActive(true);
+            }
+
+            toSave.add(variant);
+        }
+
+        // DELETE / SOFT DELETE
+        for (ProductVariant v : existing) {
+            if (!incomingSkus.contains(v.getSku())) {
+                boolean referenced = productVariantRepository.countCartItemsByVariantId(v.getId()) > 0
+                        || productVariantRepository.countOrderItemsByVariantId(v.getId()) > 0;
+
+                if (referenced) {
+                    v.setIsActive(false);
+                    toSave.add(v); // soft delete vẫn là update
+                } else {
+                    toDelete.add(v);
+                }
+            }
+        }
+
+        // BATCH OPERATIONS
+        if (!toSave.isEmpty()) {
+            productVariantRepository.saveAll(toSave);
+        }
+
+        if (!toDelete.isEmpty()) {
+            productVariantRepository.deleteAll(toDelete);
+        }
+    }
+
     /** Saves a list of variants for a product. */
     private void saveVariants(Product product, List<ProductVariantRequest> variants) {
         if (variants == null || variants.isEmpty()) return;
@@ -198,7 +298,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private Product findProductById(Long id) {
-        return productRepository.findById(id)
+        return productRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND.value(), "Product not found with id: " + id));
     }
 
@@ -217,8 +317,8 @@ public class ProductServiceImpl implements ProductService {
 
         String slug = base;
         int counter = 1;
-        while (excludeId == null ? productRepository.existsBySlug(slug)
-                : productRepository.existsBySlugAndIdNot(slug, excludeId)) {
+        while (excludeId == null ? productRepository.existsBySlugAndIsDeletedFalse(slug)
+                : productRepository.existsBySlugAndIdNotAndIsDeletedFalse(slug, excludeId)) {
             slug = base + "-" + counter++;
         }
         return slug;

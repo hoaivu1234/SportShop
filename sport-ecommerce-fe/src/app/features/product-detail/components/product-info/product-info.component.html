@@ -1,87 +1,90 @@
-<div class="product-info">
-  <!-- Breadcrumb -->
-  <nav class="breadcrumb">
-    <a routerLink="/">Home</a>
-    <i class="fas fa-chevron-right"></i>
-    <a routerLink="/products">Running</a>
-    <i class="fas fa-chevron-right"></i>
-    <span>{{ product.name }}</span>
-  </nav>
+@if (product) {
+  <div class="product-info">
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb">
+      <a routerLink="/">Home</a>
+      <i class="fas fa-chevron-right"></i>
+      <a routerLink="/products">{{ product.category?.name ?? 'Products' }}</a>
+      <i class="fas fa-chevron-right"></i>
+      <span>{{ product.name }}</span>
+    </nav>
 
-  <!-- Product Name -->
-  <h1 class="product-info__name">{{ product.name }}</h1>
+    <!-- Product Name -->
+    <h1 class="product-info__name">{{ product.name }}</h1>
 
-  <!-- Rating -->
-  <div class="product-info__rating">
-    <div class="stars">
-      @for (star of stars; track $index) {
-        <i class="fas"
-          [class.fa-star]="star === 'full' || star === 'empty'"
-          [class.fa-star-half-alt]="star === 'half'"
-          [class.star--empty]="star === 'empty'">
-        </i>
+    <!-- Price -->
+    <div class="product-info__price">
+      <span class="price-current">{{ currentPrice | currency }}</span>
+      @if (product.discountPrice) {
+        <span class="price-original">{{ product.discountPrice | currency }}</span>
+      }
+      <span class="price-tax">Incl. taxes</span>
+    </div>
+
+    <!-- Color Selector -->
+    @if (uniqueColors.length > 0) {
+      <div class="product-info__section">
+        <div class="section-label">Color: <strong>{{ selectedColor }}</strong></div>
+        <div class="color-options">
+          @for (color of uniqueColors; track color) {
+            <button
+              class="color-label"
+              [class.color-label--selected]="color === selectedColor"
+              (click)="onColorSelected(color)"
+            >{{ color }}</button>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Size Selector -->
+    @if (uniqueSizes.length > 0) {
+      <div class="product-info__section">
+        <app-size-selector
+          [sizes]="uniqueSizes"
+          [selectedSize]="selectedSize"
+          (sizeSelected)="onSizeSelected($event)"
+        />
+      </div>
+    }
+
+    <!-- Quantity -->
+    <div class="product-info__section">
+      <div class="section-label">Quantity</div>
+      <div class="qty-control">
+        <button class="qty-btn" (click)="decreaseQty()">
+          <i class="fas fa-minus"></i>
+        </button>
+        <span class="qty-value">{{ quantity }}</span>
+        <button class="qty-btn" (click)="increaseQty()">
+          <i class="fas fa-plus"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="product-info__actions">
+      <button class="btn-add-cart">
+        <i class="fas fa-shopping-bag"></i>
+        Add to Cart
+      </button>
+      <button class="btn-wishlist" (click)="toggleWishlist()">
+        <i [class]="isWishlisted ? 'fas fa-heart' : 'far fa-heart'"></i>
+        {{ isWishlisted ? 'Saved to Wishlist' : 'Add to Wishlist' }}
+      </button>
+    </div>
+
+    <!-- Meta -->
+    <div class="product-info__meta">
+      @if (firstSku) {
+        <span><i class="fas fa-tag"></i> SKU: {{ firstSku }}</span>
+      }
+      @if (product.category) {
+        <span><i class="fas fa-layer-group"></i> Category: {{ product.category.name }}</span>
+      }
+      @if (product.brand) {
+        <span><i class="fas fa-copyright"></i> Brand: {{ product.brand }}</span>
       }
     </div>
-    <span class="rating-value">{{ product.rating }}</span>
-    <span class="rating-count">({{ product.reviewCount }} reviews)</span>
   </div>
-
-  <!-- Price -->
-  <div class="product-info__price">
-    <span class="price-current">{{ product.price | currency }}</span>
-    <span class="price-tax">Incl. taxes</span>
-  </div>
-
-  <!-- Color Selector -->
-  <div class="product-info__section">
-    <div class="section-label">Color: <strong>{{ colors[0].name }}</strong></div>
-    <div class="color-options">
-      @for (color of colors; track color.name) {
-        <button
-          class="color-dot"
-          [class.color-dot--selected]="color.selected"
-          [style.background-color]="color.value"
-          [title]="color.name"
-          (click)="selectColor(color)"
-        ></button>
-      }
-    </div>
-  </div>
-
-  <!-- Size Selector -->
-  <div class="product-info__section">
-    <app-size-selector [selectedSize]="selectedSize" (sizeSelected)="onSizeSelected($event)" />
-  </div>
-
-  <!-- Quantity -->
-  <div class="product-info__section">
-    <div class="section-label">Quantity</div>
-    <div class="qty-control">
-      <button class="qty-btn" (click)="decreaseQty()">
-        <i class="fas fa-minus"></i>
-      </button>
-      <span class="qty-value">{{ quantity }}</span>
-      <button class="qty-btn" (click)="increaseQty()">
-        <i class="fas fa-plus"></i>
-      </button>
-    </div>
-  </div>
-
-  <!-- Actions -->
-  <div class="product-info__actions">
-    <button class="btn-add-cart">
-      <i class="fas fa-shopping-bag"></i>
-      Add to Cart
-    </button>
-    <button class="btn-wishlist" (click)="toggleWishlist()">
-      <i [class]="isWishlisted ? 'fas fa-heart' : 'far fa-heart'"></i>
-      {{ isWishlisted ? 'Saved to Wishlist' : 'Add to Wishlist' }}
-    </button>
-  </div>
-
-  <!-- Meta -->
-  <div class="product-info__meta">
-    <span><i class="fas fa-tag"></i> SKU: SRX-CE-2024</span>
-    <span><i class="fas fa-layer-group"></i> Category: {{ product.category }}</span>
-  </div>
-</div>
+}

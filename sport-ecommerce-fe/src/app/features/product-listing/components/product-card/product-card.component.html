@@ -1,12 +1,18 @@
-<div class="product-card">
+<a [routerLink]="['/products', product.id]" class="product-card">
   <div class="product-card__image-wrap">
-    <img [src]="imageUrl" [alt]="product.name" class="product-card__image" loading="lazy" />
+    <img
+      [src]="imageUrl"
+      [alt]="product.name"
+      class="product-card__image"
+      loading="lazy"
+      (error)="onImageError($event)"
+    />
     @if (product.badge) {
       <span class="product-card__badge" [class.badge--sale]="product.badge === 'Sale'" [class.badge--new]="product.badge === 'New'">
         {{ product.badge }}
       </span>
     }
-    <button class="product-card__wishlist" title="Add to Wishlist">
+    <button class="product-card__wishlist" title="Add to Wishlist" (click)="$event.preventDefault()">
       <i class="far fa-heart"></i>
     </button>
   </div>
@@ -14,21 +20,11 @@
   <div class="product-card__body">
     <p class="product-card__name">{{ product.name }}</p>
 
-    <div class="product-card__stars">
-      @for (star of stars; track $index) {
-        <i class="fas"
-          [class.fa-star]="star === 'full' || star === 'empty'"
-          [class.fa-star-half-alt]="star === 'half'"
-          [class.star--empty]="star === 'empty'">
-        </i>
-      }
-    </div>
-
     <div class="product-card__footer">
       <span class="product-card__price">{{ product.price | currency }}</span>
-      <button class="btn-add-cart">
+      <button class="btn-add-cart" (click)="$event.preventDefault()">
         <i class="fas fa-shopping-bag"></i> Add to Cart
       </button>
     </div>
   </div>
-</div>
+</a>

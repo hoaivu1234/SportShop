@@ -19,15 +19,25 @@
       <!-- Main Content -->
       <div class="listing-main">
         <app-sort-bar
-          [totalProducts]="126"
+          [totalProducts]="totalElements()"
           [viewMode]="viewMode"
           (viewModeChange)="onViewModeChange($event)"
         />
 
-        <app-product-grid
-          [products]="products"
-          [viewMode]="viewMode"
-        />
+        @if (isLoading()) {
+          <div class="loading-state">
+            <i class="fas fa-spinner fa-spin"></i> Loading products…
+          </div>
+        } @else {
+          <app-product-grid
+            [products]="products()"
+            [viewMode]="viewMode"
+            [totalElements]="totalElements()"
+            [pageSize]="pageSize"
+            [currentPage]="page()"
+            (pageChange)="onPageChange($event)"
+          />
+        }
       </div>
     </div>
   </div>

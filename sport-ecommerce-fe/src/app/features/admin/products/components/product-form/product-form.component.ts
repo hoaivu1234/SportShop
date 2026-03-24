@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { ProductService } from '../../services/product.service';
 import { CategoryService, CategoryFlatResponse } from '../../../../../features/admin/categories/services/category.service';
@@ -37,7 +37,7 @@ interface VariantRow {
 @Component({
   selector: 'app-product-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './product-form.component.html',
   styleUrl: './product-form.component.css',
 })

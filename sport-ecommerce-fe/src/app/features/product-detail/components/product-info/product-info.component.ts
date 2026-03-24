@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { SizeSelectorComponent } from '../size-selector/size-selector.component';
+import { ProductDetailResponse, VariantResponse } from '../../../../models/product.model';
 
 @Component({
   selector: 'app-product-info',
@@ -11,54 +12,53 @@ import { SizeSelectorComponent } from '../size-selector/size-selector.component'
   styleUrl: './product-info.component.css',
 })
 export class ProductInfoComponent {
-  product = {
-    name: 'SWIFT RUNNER X CARBON ELITE',
-    price: 185.00,
-    rating: 4.5,
-    reviewCount: 248,
-    category: 'Running Footwear',
-  };
+  @Input() product: ProductDetailResponse | null = null;
 
-  colors = [
-    { name: 'Midnight Black', value: '#1a1a1a', selected: true },
-    { name: 'Arctic White', value: '#f0f0f0', selected: false },
-    { name: 'Flame Orange', value: '#e8521a', selected: false },
-    { name: 'Ocean Blue', value: '#1a6ae8', selected: false },
-  ];
-
-  selectedSize = 'UK 9';
+  selectedVariant: VariantResponse | null = null;
+  selectedSize = '';
   quantity = 1;
   isWishlisted = false;
 
-  get stars(): ('full' | 'half' | 'empty')[] {
-    const result: ('full' | 'half' | 'empty')[] = [];
-    const val = this.product.rating;
-    for (let i = 1; i <= 5; i++) {
-      if (val >= i) result.push('full');
-      else if (val >= i - 0.5) result.push('half');
-      else result.push('empty');
-    }
-    return result;
+  get uniqueSizes(): string[] {
+    if (!this.product?.variants) return [];
+    return [...new Set(this.product.variants.filter(v => v.size).map(v => v.size!))];
   }
 
-  selectColor(color: any) {
-    this.colors.forEach(c => c.selected = false);
-    color.selected = true;
+  get uniqueColors(): string[] {
+    if (!this.product?.variants) return [];
+    return [...new Set(this.product.variants.filter(v => v.color).map(v => v.color!))];
   }
 
-  onSizeSelected(size: string) {
+  get selectedColor(): string {
+    return this.selectedVariant?.color ?? this.uniqueColors[0] ?? '';
+  }
+
+  get currentPrice(): number {
+    return this.selectedVariant?.price ?? this.product?.price ?? 0;
+  }
+
+  get firstSku(): string {
+    return this.product?.variants?.[0]?.sku ?? '';
+  }
+
+  onSizeSelected(size: string): void {
     this.selectedSize = size;
+    this.selectedVariant = this.product?.variants.find(v => v.size === size) ?? null;
   }
 
-  decreaseQty() {
+  onColorSelected(color: string): void {
+    this.selectedVariant = this.product?.variants.find(v => v.color === color) ?? null;
+  }
+
+  decreaseQty(): void {
     if (this.quantity > 1) this.quantity--;
   }
 
-  increaseQty() {
+  increaseQty(): void {
     this.quantity++;
   }
 
-  toggleWishlist() {
+  toggleWishlist(): void {
     this.isWishlisted = !this.isWishlisted;
   }
 }

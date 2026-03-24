@@ -6,29 +6,31 @@
   </div>
 
   <!-- Pagination -->
-  <div class="pagination">
-    <button
-      class="pagination__btn"
-      [disabled]="currentPage === 1"
-      (click)="goToPage(currentPage - 1)"
-    >
-      <i class="fas fa-chevron-left"></i>
-    </button>
-
-    @for (page of pages; track page) {
+  @if (totalPages > 1) {
+    <div class="pagination">
       <button
-        class="pagination__page"
-        [class.pagination__page--active]="page === currentPage"
-        (click)="goToPage(page)"
-      >{{ page }}</button>
-    }
+        class="pagination__btn"
+        [disabled]="currentPage === 0"
+        (click)="goToPage(currentPage - 1)"
+      >
+        <i class="fas fa-chevron-left"></i>
+      </button>
 
-    <button
-      class="pagination__btn"
-      [disabled]="currentPage === totalPages"
-      (click)="goToPage(currentPage + 1)"
-    >
-      <i class="fas fa-chevron-right"></i>
-    </button>
-  </div>
+      @for (page of pages; track page) {
+        <button
+          class="pagination__page"
+          [class.pagination__page--active]="page - 1 === currentPage"
+          (click)="goToPage(page - 1)"
+        >{{ page }}</button>
+      }
+
+      <button
+        class="pagination__btn"
+        [disabled]="currentPage === totalPages - 1"
+        (click)="goToPage(currentPage + 1)"
+      >
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+  }
 </div>

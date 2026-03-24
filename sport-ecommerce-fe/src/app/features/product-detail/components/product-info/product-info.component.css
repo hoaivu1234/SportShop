@@ -115,23 +115,32 @@
   gap: 12px;
 }
 
-.color-dot {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+.color-label {
+  padding: 6px 14px;
+  border-radius: 6px;
   cursor: pointer;
-  border: 3px solid transparent;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+  border: 1.5px solid var(--color-border);
+  background: transparent;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-dark);
   transition: all var(--transition);
 }
 
-.color-dot:hover {
-  transform: scale(1.1);
+.color-label:hover {
+  border-color: var(--color-primary);
 }
 
-.color-dot--selected {
+.color-label--selected {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px rgba(232,82,26,0.3);
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.price-original {
+  font-size: 1.1rem;
+  color: var(--color-gray);
+  text-decoration: line-through;
 }
 
 .qty-control {

@@ -1,40 +1,34 @@
 <div class="product-detail">
   <div class="container">
-    <!-- Main Product Section -->
-    <div class="product-detail__main">
-      <!-- Left: Images -->
-      <div class="product-detail__images">
-        <app-product-images />
+
+    @if (isLoading()) {
+      <div class="loading-state">
+        <i class="fas fa-spinner fa-spin"></i> Loading product…
+      </div>
+    } @else if (product()) {
+      <!-- Main Product Section -->
+      <div class="product-detail__main">
+        <!-- Left: Images -->
+        <div class="product-detail__images">
+          <app-product-images [images]="product()!.images" />
+        </div>
+
+        <!-- Right: Info -->
+        <div class="product-detail__info">
+          <app-product-info [product]="product()" />
+        </div>
       </div>
 
-      <!-- Right: Info -->
-      <div class="product-detail__info">
-        <app-product-info />
-      </div>
-    </div>
-
-    <!-- Description -->
-    <section class="product-detail__description">
-      <h2 class="description__title">BUILT FOR SPEED</h2>
-      <div class="description__content">
-        <p>
-          The Swift Runner X Carbon Elite represents the pinnacle of performance footwear engineering.
-          Designed in collaboration with elite athletes, this shoe combines next-generation carbon fiber
-          technology with adaptive cushioning to deliver unparalleled speed and energy return.
-        </p>
-        <p>
-          The lightweight mesh upper provides a breathable, sock-like fit that keeps your foot cool
-          during high-intensity sessions. The proprietary carbon plate is engineered to propel every
-          stride, while the deep-lug outsole ensures grip on any surface — from track to trail.
-        </p>
-        <ul class="description__features">
-          <li><i class="fas fa-check"></i> Full-length carbon fiber plate for maximum energy return</li>
-          <li><i class="fas fa-check"></i> Adaptive mesh upper with targeted support zones</li>
-          <li><i class="fas fa-check"></i> 6mm heel-to-toe drop for natural running mechanics</li>
-          <li><i class="fas fa-check"></i> Weight: 218g (Men's UK 9)</li>
-        </ul>
-      </div>
-    </section>
+      <!-- Description -->
+      @if (product()!.description) {
+        <section class="product-detail__description">
+          <h2 class="description__title">ABOUT THIS PRODUCT</h2>
+          <div class="description__content">
+            <p>{{ product()!.description }}</p>
+          </div>
+        </section>
+      }
+    }
 
     <!-- Related Products -->
     <app-related-products />

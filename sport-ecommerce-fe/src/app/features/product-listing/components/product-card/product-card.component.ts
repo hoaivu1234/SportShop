@@ -7,8 +7,8 @@ export interface ListingProduct {
   name: string;
   price: number;
   badge?: 'Sale' | 'New';
-  seed: number;
-  rating: number;
+  mainImageUrl?: string;
+  totalStock?: number;
 }
 
 @Component({
@@ -21,18 +21,13 @@ export interface ListingProduct {
 export class ListingProductCardComponent {
   @Input() product!: ListingProduct;
 
+  readonly fallbackImage = 'assets/images/placeholder.png';
+
   get imageUrl(): string {
-    return `https://picsum.photos/seed/${this.product.seed}/400/400`;
+    return this.product.mainImageUrl || this.fallbackImage;
   }
 
-  get stars(): ('full' | 'half' | 'empty')[] {
-    const result: ('full' | 'half' | 'empty')[] = [];
-    const val = this.product.rating;
-    for (let i = 1; i <= 5; i++) {
-      if (val >= i) result.push('full');
-      else if (val >= i - 0.5) result.push('half');
-      else result.push('empty');
-    }
-    return result;
+  onImageError(event: Event): void {
+    (event.target as HTMLImageElement).src = this.fallbackImage;
   }
 }

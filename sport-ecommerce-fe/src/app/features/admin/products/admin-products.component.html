@@ -6,8 +6,12 @@
       <h1 class="page-title">Product Inventory</h1>
     </div>
     <div class="header-actions">
-      <button class="btn btn-secondary">
-        <i class="fas fa-file-csv"></i> Export CSV
+      <button class="btn btn-secondary" [disabled]="isExporting" (click)="exportCsv()">
+        @if (isExporting) {
+          <i class="fas fa-spinner fa-spin"></i> Exporting...
+        } @else {
+          <i class="fas fa-file-csv"></i> Export CSV
+        }
       </button>
       <button class="btn btn-primary" (click)="openModal()">
         <i class="fas fa-plus"></i> Add New Product
@@ -28,21 +32,6 @@
 
   <!-- Table Card -->
   <div class="table-card">
-    <div class="table-controls">
-      <div class="search-wrapper">
-        <i class="fas fa-search search-icon"></i>
-        <input
-          type="text"
-          class="search-input"
-          placeholder="Search products..."
-          [(ngModel)]="searchQuery"
-        />
-      </div>
-      <button class="btn btn-secondary">
-        <i class="fas fa-sliders"></i> Filters
-      </button>
-    </div>
-
     <app-product-table></app-product-table>
   </div>
 </div>

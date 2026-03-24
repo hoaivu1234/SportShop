@@ -61,8 +61,14 @@ public class ProductSpecification {
         };
     }
 
+    /** Always excludes soft-deleted products from every list query */
+    public static Specification<Product> notDeleted() {
+        return (root, query, cb) -> cb.isFalse(root.get("isDeleted"));
+    }
+
     /**
-     * Builds a combined Specification from all filter criteria
+     * Builds a combined Specification from all filter criteria.
+     * Soft-deleted products are always excluded.
      */
     public static Specification<Product> withFilters(
             String keyword,
@@ -73,7 +79,8 @@ public class ProductSpecification {
             BigDecimal maxPrice
     ) {
         return Specification
-                .where(hasKeyword(keyword))
+                .where(notDeleted())
+                .and(hasKeyword(keyword))
                 .and(hasCategoryId(categoryId))
                 .and(hasBrand(brand))
                 .and(hasStatus(status))

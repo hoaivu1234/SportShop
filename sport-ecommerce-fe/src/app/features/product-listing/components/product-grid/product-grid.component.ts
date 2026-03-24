@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ListingProductCardComponent, ListingProduct } from '../product-card/product-card.component';
 
@@ -12,17 +12,22 @@ import { ListingProductCardComponent, ListingProduct } from '../product-card/pro
 export class ProductGridComponent {
   @Input() products: ListingProduct[] = [];
   @Input() viewMode: 'grid' | 'list' = 'grid';
+  @Input() totalElements = 0;
+  @Input() pageSize = 12;
+  @Input() currentPage = 0;
+  @Output() pageChange = new EventEmitter<number>();
 
-  currentPage = 1;
-  totalPages = 5;
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.totalElements / this.pageSize));
+  }
 
   get pages(): number[] {
     return Array.from({ length: this.totalPages }, (_, i) => i + 1);
   }
 
-  goToPage(page: number) {
-    if (page >= 1 && page <= this.totalPages) {
-      this.currentPage = page;
+  goToPage(page: number): void {
+    if (page >= 0 && page < this.totalPages) {
+      this.pageChange.emit(page);
     }
   }
 }

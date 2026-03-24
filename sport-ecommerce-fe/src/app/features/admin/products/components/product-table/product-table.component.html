@@ -1,3 +1,74 @@
+<!-- ── Filter bar ────────────────────────────────────────────────────────── -->
+<div class="filter-bar">
+
+  <!-- Keyword search -->
+  <div class="search-wrapper">
+    <i class="fas fa-search search-icon"></i>
+    <input
+      type="text"
+      class="filter-input"
+      placeholder="Search by name or brand..."
+      [value]="keywordInput"
+      (input)="onKeywordChange($any($event.target).value)"
+    />
+    @if (keywordInput) {
+      <button class="clear-input-btn" title="Clear search" (click)="onKeywordChange('')">
+        <i class="fas fa-times"></i>
+      </button>
+    }
+  </div>
+
+  <!-- Category filter -->
+  <select
+    class="filter-select"
+    [value]="categoryId() ?? ''"
+    (change)="onCategoryChange($any($event.target).value)"
+  >
+    <option value="">All Categories</option>
+    @for (cat of categories(); track cat.id) {
+      <option [value]="cat.id">{{ cat.name }}</option>
+    }
+  </select>
+
+  <!-- Status filter -->
+  <select
+    class="filter-select"
+    [value]="statusFilter()"
+    (change)="onStatusChange($any($event.target).value)"
+  >
+    @for (opt of statusOptions; track opt.value) {
+      <option [value]="opt.value">{{ opt.label }}</option>
+    }
+  </select>
+
+  <!-- Push page-size to the right -->
+  <span class="filter-spacer"></span>
+
+  <!-- Clear filters -->
+  @if (hasActiveFilters) {
+    <button class="btn-clear-filters" (click)="clearFilters()">
+      <i class="fas fa-xmark"></i> Clear
+    </button>
+  }
+
+  <!-- Page size selector -->
+  <div class="page-size-wrapper">
+    <span class="page-size-label">Show</span>
+    <select
+      class="filter-select page-size-select"
+      [value]="pageSize()"
+      (change)="onPageSizeChange($any($event.target).value)"
+    >
+      @for (opt of pageSizeOptions; track opt) {
+        <option [value]="opt">{{ opt }}</option>
+      }
+    </select>
+    <span class="page-size-label">per page</span>
+  </div>
+
+</div>
+
+<!-- ── Table ─────────────────────────────────────────────────────────────── -->
 <div class="table-wrapper">
   <table class="product-table">
     <thead>
@@ -82,9 +153,10 @@
   </table>
 </div>
 
+<!-- ── Pagination ────────────────────────────────────────────────────────── -->
 <app-pagination
   [currentPage]="page()"
-  [pageSize]="pageSize"
+  [pageSize]="pageSize()"
   [totalElements]="totalElements()"
   (pageChange)="onPageChange($event)"
 />

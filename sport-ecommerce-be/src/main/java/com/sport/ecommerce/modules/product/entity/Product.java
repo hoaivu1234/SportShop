@@ -47,6 +47,9 @@ public class Product {
     @Column(length = 20)
     private String status = "ACTIVE";
 
+    @Column(name = "is_deleted", nullable = false)
+    private Boolean isDeleted = false;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 

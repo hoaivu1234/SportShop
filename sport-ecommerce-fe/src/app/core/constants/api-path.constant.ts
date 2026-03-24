@@ -21,6 +21,7 @@ export const USER_API = {
 export const PRODUCT_API = {
   BASE: `${API_BASE}/products`,
   BY_ID: (id: number | string) => `${API_BASE}/products/${id}`,
+  EXPORT: `${API_BASE}/products/export`,
   SEARCH: `${API_BASE}/products/search`,
   BY_CATEGORY: (categoryId: number | string) => `${API_BASE}/products/category/${categoryId}`,
   FEATURED: `${API_BASE}/products/featured`,

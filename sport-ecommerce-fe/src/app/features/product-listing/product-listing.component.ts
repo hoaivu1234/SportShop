@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -6,6 +6,7 @@ import { FilterSidebarComponent } from './components/filter-sidebar/filter-sideb
 import { SortBarComponent } from './components/sort-bar/sort-bar.component';
 import { ProductGridComponent } from './components/product-grid/product-grid.component';
 import { ListingProduct } from './components/product-card/product-card.component';
+import { ProductService } from '../admin/products/services/product.service';
 
 @Component({
   selector: 'app-product-listing',
@@ -21,26 +22,55 @@ import { ListingProduct } from './components/product-card/product-card.component
   templateUrl: './product-listing.component.html',
   styleUrl: './product-listing.component.css',
 })
-export class ProductListingComponent {
+export class ProductListingComponent implements OnInit {
+  private readonly productService = inject(ProductService);
+
+  products = signal<ListingProduct[]>([]);
+  totalElements = signal(0);
+  isLoading = signal(false);
+
+  page = signal(0);
+  readonly pageSize = 12;
   viewMode: 'grid' | 'list' = 'grid';
   email = '';
 
-  products: ListingProduct[] = [
-    { id: 1, name: 'Velocity Pro Runner X3', price: 189.99, badge: 'Sale', seed: 10, rating: 4.5 },
-    { id: 2, name: 'Aerowide Training Shorts', price: 45.00, seed: 20, rating: 4.0 },
-    { id: 3, name: 'Titanium Flex Gym Jacket', price: 155.00, badge: 'New', seed: 30, rating: 4.8 },
-    { id: 4, name: 'Pulse Ultra Smart Watch', price: 299.00, seed: 40, rating: 4.3 },
-    { id: 5, name: 'County Shield Basketballs', price: 65.00, seed: 50, rating: 4.1 },
-    { id: 6, name: 'ZenFlex Yoga Mat 9mm', price: 78.00, badge: 'New', seed: 60, rating: 4.6 },
-    { id: 7, name: 'StormBreaker Windrunner', price: 145.00, seed: 70, rating: 4.2 },
-    { id: 8, name: 'Gripmaster Lifting Straps', price: 24.99, badge: 'Sale', seed: 80, rating: 4.7 },
-  ];
+  ngOnInit(): void {
+    this.loadProducts();
+  }
 
-  onViewModeChange(mode: 'grid' | 'list') {
+  loadProducts(): void {
+    this.isLoading.set(true);
+    this.productService.getProducts({
+      page: this.page(),
+      size: this.pageSize,
+      sort: 'createdAt',
+      direction: 'desc',
+      status: 'ACTIVE',
+    }).subscribe({
+      next: (res) => {
+        this.products.set(res.data.content.map(p => ({
+          id: p.id,
+          name: p.name,
+          price: p.price,
+          mainImageUrl: p.mainImageUrl,
+          totalStock: p.totalStock,
+        })));
+        this.totalElements.set(res.data.totalElements);
+      },
+      complete: () => this.isLoading.set(false),
+    });
+  }
+
+  onPageChange(page: number): void {
+    this.page.set(page);
+    this.loadProducts();
+  }
+
+  onViewModeChange(mode: 'grid' | 'list'): void {
     this.viewMode = mode;
   }
 
-  subscribeNewsletter() {
+  subscribeNewsletter(): void {
     this.email = '';
   }
 }

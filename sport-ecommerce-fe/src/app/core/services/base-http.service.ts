@@ -62,6 +62,14 @@ export class BaseHttpService {
       .pipe(catchError(err => this.handleError(err)));
   }
 
+  /** Downloads a binary/text file as a Blob — used for CSV/PDF export endpoints. */
+  getBlob(url: string, params?: QueryRecord): Observable<Blob> {
+    return this.http.get(url, {
+      params: this.buildParams(params),
+      responseType: 'blob',
+    });
+  }
+
   // ─── Helpers ─────────────────────────────────────────────────────────────────
 
   private buildParams(params?: QueryRecord): HttpParams {

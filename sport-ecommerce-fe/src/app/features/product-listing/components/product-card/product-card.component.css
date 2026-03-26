@@ -92,6 +92,10 @@
 
 .product-card:hover .product-card__wishlist { opacity: 1; }
 .product-card__wishlist:hover { color: var(--color-primary); }
+.product-card__wishlist--active {
+  opacity: 1;
+  color: var(--color-primary);
+}
 
 /* ── Body ─────────────────────────────────────────────────────────────────── */
 

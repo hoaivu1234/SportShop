@@ -1,24 +1,48 @@
 <div class="cart-summary">
   <h3 class="cart-summary__title">ORDER SUMMARY</h3>
 
-  <!-- Promo Code -->
+  <!-- Coupon Input -->
   <div class="promo-section">
-    <p class="promo-label">Promo Code</p>
-    @if (!promoApplied) {
+    <p class="promo-label">Coupon Code</p>
+
+    @if (!couponState.isApplied()) {
       <div class="promo-input-wrap">
         <input
           type="text"
-          [(ngModel)]="promoCode"
-          placeholder="Enter code (try SPORT10)"
+          [(ngModel)]="couponCode"
+          placeholder="Enter coupon code"
           class="promo-input"
+          [class.promo-input--error]="couponState.error()"
+          (keyup.enter)="applyPromo()"
+          [disabled]="couponState.isApplying()"
         />
-        <button class="promo-btn" (click)="applyPromo()">Apply</button>
+        <button
+          class="promo-btn"
+          (click)="applyPromo()"
+          [disabled]="couponState.isApplying()"
+        >
+          @if (couponState.isApplying()) {
+            <i class="fas fa-spinner fa-spin"></i>
+          } @else {
+            Apply
+          }
+        </button>
       </div>
+
+      @if (couponState.error()) {
+        <p class="promo-error">
+          <i class="fas fa-exclamation-circle"></i>
+          {{ couponState.error() }}
+        </p>
+      }
     } @else {
       <div class="promo-applied">
         <i class="fas fa-check-circle"></i>
-        Code applied — {{ promoDiscount | currency }} off
-        <button class="promo-remove" (click)="promoApplied = false; promoDiscount = 0; promoCode = ''">
+        <span>
+          <strong>{{ couponState.applied()!.couponCode }}</strong> —
+          {{ couponState.discountAmount() | currency }} off
+        </span>
+        <button class="promo-remove" (click)="removePromo()" title="Remove coupon">
           <i class="fas fa-times"></i>
         </button>
       </div>
@@ -31,10 +55,10 @@
       <span>Subtotal</span>
       <span>{{ subtotal | currency }}</span>
     </div>
-    @if (promoApplied) {
+    @if (couponState.isApplied()) {
       <div class="summary-row summary-row--discount">
-        <span>Promo Discount</span>
-        <span>-{{ promoDiscount | currency }}</span>
+        <span>Coupon ({{ couponState.applied()!.couponCode }})</span>
+        <span>-{{ couponState.discountAmount() | currency }}</span>
       </div>
     }
     <div class="summary-row">

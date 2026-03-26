@@ -34,6 +34,8 @@
     <app-related-products />
 
     <!-- Reviews -->
-    <app-review-list />
+    @if (product()) {
+      <app-review-list [productId]="product()!.id" />
+    }
   </div>
 </div>

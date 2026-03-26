@@ -40,7 +40,6 @@ export const routes: Routes = [
         path: 'cart',
         loadComponent: () =>
           import('./features/cart/cart.component').then((m) => m.CartComponent),
-        canActivate: [authGuard],
       },
       {
         path: 'profile',
@@ -51,10 +50,26 @@ export const routes: Routes = [
         canActivate: [authGuard],
       },
       {
+        path: 'wishlist',
+        loadComponent: () =>
+          import('./features/wishlist/wishlist.component').then(
+            (m) => m.WishlistComponent,
+          ),
+        canActivate: [authGuard],
+      },
+      {
         path: 'orders',
         loadComponent: () =>
           import('./features/orders/order-list/order-list.component').then(
             (m) => m.OrderListComponent,
+          ),
+        canActivate: [authGuard],
+      },
+      {
+        path: 'orders/:id',
+        loadComponent: () =>
+          import('./features/orders/order-detail/order-detail.component').then(
+            (m) => m.OrderDetailComponent,
           ),
         canActivate: [authGuard],
       },
@@ -170,6 +185,14 @@ export const routes: Routes = [
             (m) => m.AdminReviewsComponent,
           ),
         data: { title: 'Review Management' }
+      },
+      {
+        path: 'coupons',
+        loadComponent: () =>
+          import('./features/admin/coupons/admin-coupons.component').then(
+            (m) => m.AdminCouponsComponent,
+          ),
+        data: { title: 'Coupon Management' }
       },
       {
         path: 'analytics',

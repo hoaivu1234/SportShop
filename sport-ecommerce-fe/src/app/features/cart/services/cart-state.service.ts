@@ -4,6 +4,7 @@ import {
   signal,
   computed,
   effect,
+  untracked,
   DestroyRef,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -70,14 +71,18 @@ export class CartStateService {
   // ── Initialization ────────────────────────────────────────────────────────
 
   constructor() {
-    // React to auth state changes
+    // React to auth state changes.
+    // untracked() ensures only loggedIn() is a dependency — signals read
+    // inside onLogin/onLogout (e.g. isLoading) must not re-trigger this effect.
     effect(() => {
       const loggedIn = this.authSvc.loggedIn();
-      if (loggedIn) {
-        this.onLogin();
-      } else {
-        this.onLogout();
-      }
+      untracked(() => {
+        if (loggedIn) {
+          this.onLogin();
+        } else {
+          this.onLogout();
+        }
+      });
     }, { allowSignalWrites: true });
   }
 

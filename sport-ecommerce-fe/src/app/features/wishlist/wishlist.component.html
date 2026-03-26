@@ -1,0 +1,116 @@
+<div class="wishlist-page">
+  <div class="container">
+
+    <!-- Header -->
+    <div class="cart-header">
+      <div>
+        <h1 class="cart-header__title">MY WISHLIST</h1>
+        @if (wishlistState.itemCount() > 0) {
+          <span class="cart-header__count">{{ wishlistState.itemCount() }} {{ wishlistState.itemCount() === 1 ? 'Item' : 'Items' }}</span>
+        }
+      </div>
+      <a routerLink="/products" class="continue-shopping">
+        <i class="fas fa-arrow-left"></i> Continue Shopping
+      </a>
+    </div>
+
+    <!-- Loading skeleton -->
+    @if (wishlistState.isLoading()) {
+      <div class="wishlist-grid">
+        @for (i of skeletonItems; track i) {
+          <div class="wishlist-card wishlist-card--skeleton">
+            <div class="skeleton skeleton--img"></div>
+            <div class="wishlist-card__body">
+              <div class="skeleton skeleton--title"></div>
+              <div class="skeleton skeleton--text"></div>
+              <div class="skeleton skeleton--btn"></div>
+            </div>
+          </div>
+        }
+      </div>
+
+    <!-- Empty state -->
+    } @else if (wishlistState.itemCount() === 0) {
+      <div class="wishlist-empty">
+        <div class="wishlist-empty__icon">
+          <i class="far fa-heart"></i>
+        </div>
+        <h2 class="wishlist-empty__title">Your wishlist is empty</h2>
+        <p class="wishlist-empty__text">Save items you love and come back to them anytime.</p>
+        <a routerLink="/products" class="btn-browse">
+          <i class="fas fa-search"></i> Browse Products
+        </a>
+      </div>
+
+    <!-- Items grid -->
+    } @else {
+      <div class="wishlist-grid">
+        @for (item of wishlistState.items(); track item.id) {
+          <div class="wishlist-card" (click)="goToProduct(item.productId)">
+
+            <!-- Image -->
+            <div class="wishlist-card__image-wrap">
+              @if (item.mainImageUrl) {
+                <img
+                  [src]="item.mainImageUrl"
+                  [alt]="item.productName"
+                  class="wishlist-card__image"
+                  loading="lazy"
+                  (error)="onImageError($event)"
+                />
+              } @else {
+                <div class="wishlist-card__image-placeholder">
+                  <i class="fas fa-image"></i>
+                </div>
+              }
+
+              <!-- Stock badge -->
+              @if (item.totalStock === 0) {
+                <span class="wishlist-card__oos-label">Out of Stock</span>
+              }
+
+              <!-- Remove button -->
+              <button
+                class="wishlist-card__remove"
+                title="Remove from wishlist"
+                (click)="onRemove(item.id, $event)"
+              >
+                <i class="fas fa-heart"></i>
+              </button>
+            </div>
+
+            <!-- Body -->
+            <div class="wishlist-card__body">
+              <p class="wishlist-card__name">{{ item.productName }}</p>
+
+              <div class="wishlist-card__pricing">
+                <span
+                  class="wishlist-card__price"
+                  [class.wishlist-card__price--sale]="item.discountPrice"
+                >
+                  {{ item.price | currency }}
+                </span>
+                @if (item.discountPrice) {
+                  <span class="wishlist-card__original-price">{{ item.discountPrice | currency }}</span>
+                }
+              </div>
+
+              <button
+                class="btn-add-cart"
+                [disabled]="item.totalStock === 0"
+                (click)="goToProduct(item.productId); $event.stopPropagation()"
+              >
+                @if (item.totalStock === 0) {
+                  Out of Stock
+                } @else {
+                  <i class="fas fa-shopping-bag"></i> Add to Cart
+                }
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+  </div>
+</div>

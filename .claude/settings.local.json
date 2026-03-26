@@ -11,7 +11,10 @@
       "Bash(npx tsc:*)",
       "Bash(./mvnw compile:*)",
       "Bash(find D:Ca_nhanSportEcommercesport-ecommerce-fesrcappshared -name *pagination* -o -name *product-card*)",
-      "Bash(xargs ls:*)"
+      "Bash(xargs ls:*)",
+      "Bash(find /d/Ca_nhan/SportEcommerce -name *api*constant* -o -name *api-path*)",
+      "Bash(grep -E \"\\\\.\\(ts|html\\)$\")",
+      "Bash(find D:Ca_nhanSportEcommercesport-ecommerce-fesrcapp -type f \\\\\\(-name *header* \\\\\\))"
     ]
   }
 }

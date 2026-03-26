@@ -1,0 +1,272 @@
+<div class="coupons-page">
+
+  <!-- Page header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Coupon Management</h1>
+      <p class="page-subtitle">Create and manage discount codes</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-primary" (click)="openCreate()">
+        <i class="fas fa-plus"></i> Create Coupon
+      </button>
+    </div>
+  </div>
+
+  <!-- Create / Edit form -->
+  @if (showForm()) {
+    <div class="coupon-form-card">
+      <h3 class="form-card__title">
+        {{ editingId() === null ? 'Create Coupon' : 'Edit Coupon' }}
+      </h3>
+
+      <div class="form-grid">
+        <!-- Code (create only) -->
+        @if (editingId() === null) {
+          <div class="form-field">
+            <label class="form-label">Code *</label>
+            <input
+              type="text"
+              class="form-input"
+              placeholder="e.g. SUMMER20"
+              [(ngModel)]="form.code"
+              (input)="form.code = form.code.toUpperCase()"
+            />
+          </div>
+        } @else {
+          <div class="form-field">
+            <label class="form-label">Code</label>
+            <input type="text" class="form-input" [value]="form.code" disabled />
+          </div>
+        }
+
+        <!-- Discount type -->
+        <div class="form-field">
+          <label class="form-label">Type *</label>
+          <select class="form-input" [(ngModel)]="form.discountType">
+            <option value="PERCENT">Percentage (%)</option>
+            <option value="FIXED">Fixed Amount ($)</option>
+          </select>
+        </div>
+
+        <!-- Discount value -->
+        <div class="form-field">
+          <label class="form-label">
+            Value * {{ form.discountType === 'PERCENT' ? '(%)' : '($)' }}
+          </label>
+          <input
+            type="number"
+            class="form-input"
+            [placeholder]="form.discountType === 'PERCENT' ? 'e.g. 10' : 'e.g. 15.00'"
+            [(ngModel)]="form.discountValue"
+            min="0.01"
+          />
+        </div>
+
+        <!-- Min order value -->
+        <div class="form-field">
+          <label class="form-label">Min Order Value ($)</label>
+          <input
+            type="number"
+            class="form-input"
+            placeholder="Optional"
+            [(ngModel)]="form.minOrderValue"
+            min="0"
+          />
+        </div>
+
+        <!-- Max discount (for PERCENT) -->
+        @if (form.discountType === 'PERCENT') {
+          <div class="form-field">
+            <label class="form-label">Max Discount ($)</label>
+            <input
+              type="number"
+              class="form-input"
+              placeholder="Optional cap"
+              [(ngModel)]="form.maxDiscountValue"
+              min="0.01"
+            />
+          </div>
+        }
+
+        <!-- Usage limit -->
+        <div class="form-field">
+          <label class="form-label">Usage Limit</label>
+          <input
+            type="number"
+            class="form-input"
+            placeholder="Unlimited"
+            [(ngModel)]="form.usageLimit"
+            min="1"
+          />
+        </div>
+
+        <!-- Start date -->
+        <div class="form-field">
+          <label class="form-label">Start Date</label>
+          <input type="datetime-local" class="form-input" [(ngModel)]="form.startDate" />
+        </div>
+
+        <!-- End date -->
+        <div class="form-field">
+          <label class="form-label">End Date</label>
+          <input type="datetime-local" class="form-input" [(ngModel)]="form.endDate" />
+        </div>
+
+        <!-- Status -->
+        <div class="form-field">
+          <label class="form-label">Status</label>
+          <select class="form-input" [(ngModel)]="form.status">
+            <option value="ACTIVE">Active</option>
+            <option value="DISABLED">Disabled</option>
+            <option value="EXPIRED">Expired</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-secondary" (click)="cancelForm()" [disabled]="isSubmitting()">
+          Cancel
+        </button>
+        <button class="btn btn-primary" (click)="submit()" [disabled]="isSubmitting()">
+          @if (isSubmitting()) {
+            <i class="fas fa-spinner fa-spin"></i> Saving…
+          } @else {
+            {{ editingId() === null ? 'Create' : 'Save Changes' }}
+          }
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Table card -->
+  <div class="table-card">
+
+    <!-- Loading -->
+    @if (isLoading()) {
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Code</th><th>Type</th><th>Value</th><th>Min Order</th>
+            <th>Usage</th><th>Expires</th><th>Status</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (i of skeletonRows; track i) {
+            <tr class="skeleton-row">
+              <td><div class="skeleton skeleton--md"></div></td>
+              <td><div class="skeleton skeleton--sm"></div></td>
+              <td><div class="skeleton skeleton--sm"></div></td>
+              <td><div class="skeleton skeleton--sm"></div></td>
+              <td><div class="skeleton skeleton--sm"></div></td>
+              <td><div class="skeleton skeleton--md"></div></td>
+              <td><div class="skeleton skeleton--sm"></div></td>
+              <td><div class="skeleton skeleton--sm"></div></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+    <!-- Empty -->
+    } @else if (coupons().length === 0) {
+      <div class="table-empty">
+        <i class="fas fa-ticket-alt"></i>
+        <p>No coupons yet. Create your first discount code.</p>
+      </div>
+
+    <!-- Data -->
+    } @else {
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Type</th>
+            <th>Value</th>
+            <th>Min Order</th>
+            <th>Usage</th>
+            <th>Expires</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (coupon of coupons(); track coupon.id) {
+            <tr>
+              <td><span class="coupon-code">{{ coupon.code }}</span></td>
+              <td>
+                <span class="type-badge" [class.type-badge--percent]="coupon.discountType === 'PERCENT'">
+                  {{ coupon.discountType === 'PERCENT' ? '%' : '$' }}
+                </span>
+              </td>
+              <td class="value-cell">
+                {{ coupon.discountType === 'PERCENT'
+                    ? coupon.discountValue + '%'
+                    : '$' + coupon.discountValue.toFixed(2) }}
+                @if (coupon.maxDiscountValue) {
+                  <span class="value-cap">(max ${{ coupon.maxDiscountValue.toFixed(2) }})</span>
+                }
+              </td>
+              <td>{{ coupon.minOrderValue ? '$' + coupon.minOrderValue.toFixed(2) : '—' }}</td>
+              <td>
+                {{ coupon.usedCount }}{{ coupon.usageLimit ? ' / ' + coupon.usageLimit : '' }}
+              </td>
+              <td>{{ coupon.endDate ? (coupon.endDate | date:'MMM d, y') : '—' }}</td>
+              <td>
+                <span class="badge" [ngClass]="statusClass(coupon.status)">
+                  {{ coupon.status }}
+                </span>
+              </td>
+              <td>
+                <div class="row-actions">
+                  <button
+                    class="btn btn-sm btn-secondary"
+                    title="Edit"
+                    (click)="openEdit(coupon)"
+                  >
+                    <i class="fas fa-pen"></i>
+                  </button>
+                  <button
+                    class="btn btn-sm btn-danger"
+                    title="Delete"
+                    [disabled]="deletingId() === coupon.id"
+                    (click)="deleteCoupon(coupon.id)"
+                  >
+                    @if (deletingId() === coupon.id) {
+                      <i class="fas fa-spinner fa-spin"></i>
+                    } @else {
+                      <i class="fas fa-trash"></i>
+                    }
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <!-- Pagination -->
+      @if (totalPages() > 1) {
+        <div class="table-pagination">
+          <button class="btn btn-sm btn-secondary"
+                  [disabled]="page() === 0"
+                  (click)="goToPage(page() - 1)">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          @for (p of pages(totalPages()); track p) {
+            <button class="btn btn-sm"
+                    [class.btn-primary]="p === page()"
+                    [class.btn-secondary]="p !== page()"
+                    (click)="goToPage(p)">
+              {{ p + 1 }}
+            </button>
+          }
+          <button class="btn btn-sm btn-secondary"
+                  [disabled]="page() === totalPages() - 1"
+                  (click)="goToPage(page() + 1)">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      }
+    }
+  </div>
+</div>

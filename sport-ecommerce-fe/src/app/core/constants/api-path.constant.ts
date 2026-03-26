@@ -99,9 +99,33 @@ export const CART_API = {
 // ── Review ────────────────────────────────────────────────────────────────────
 
 export const REVIEW_API = {
-  BASE:       `${API_BASE}/reviews`,
-  BY_PRODUCT: (productId: number | string) => `${API_BASE}/products/${productId}/reviews`,
-  BY_ID:      (id: number | string) => `${API_BASE}/reviews/${id}`,
+  // Authenticated CRUD endpoints
+  BASE:    `${API_BASE}/reviews`,
+  BY_ID:   (id: number | string) => `${API_BASE}/reviews/${id}`,
+  MY:      `${API_BASE}/reviews/me`,
+
+  // Public read-only endpoints (no auth required)
+  BY_PRODUCT: (productId: number | string) =>
+    `${PUBLIC_BASE}/products/${productId}/reviews`,
+  SUMMARY: (productId: number | string) =>
+    `${PUBLIC_BASE}/products/${productId}/reviews/summary`,
+} as const;
+
+// ── Coupon ────────────────────────────────────────────────────────────────────
+
+export const COUPON_API = {
+  APPLY:   `${API_BASE}/coupons/apply`,
+  BY_CODE: (code: string) => `${API_BASE}/coupons/code/${encodeURIComponent(code)}`,
+  // Admin
+  ADMIN_BASE:  `${ADMIN_BASE}/coupons`,
+  ADMIN_BY_ID: (id: number | string) => `${ADMIN_BASE}/coupons/${id}`,
+} as const;
+
+// ── Wishlist ──────────────────────────────────────────────────────────────────
+
+export const WISHLIST_API = {
+  BASE:  `${API_BASE}/wishlist`,
+  BY_ID: (id: number | string) => `${API_BASE}/wishlist/${id}`,
 } as const;
 
 // ── Admin misc ────────────────────────────────────────────────────────────────

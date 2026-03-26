@@ -1,6 +1,8 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+
+import { WishlistStateService } from '../../../wishlist/services/wishlist-state.service';
 
 export interface ListingProduct {
   id: number;
@@ -22,6 +24,9 @@ export interface ListingProduct {
   styleUrl: './product-card.component.css',
 })
 export class ListingProductCardComponent {
+  private readonly router       = inject(Router);
+  readonly wishlistState        = inject(WishlistStateService);
+
   @Input() product!: ListingProduct;
 
   readonly fallbackImage = 'assets/images/placeholder.png';
@@ -36,5 +41,17 @@ export class ListingProductCardComponent {
 
   onImageError(event: Event): void {
     (event.target as HTMLImageElement).src = this.fallbackImage;
+  }
+
+  onAddToCart(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.router.navigate(['/products', this.product.id]);
+  }
+
+  onToggleWishlist(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.wishlistState.toggle(this.product.id);
   }
 }

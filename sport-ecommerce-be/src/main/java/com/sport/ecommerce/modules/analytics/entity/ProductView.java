@@ -30,7 +30,6 @@ public class ProductView {
     private User user;
 
     @CreationTimestamp
-    @Column(name = "viewed_at")
     private LocalDateTime viewedAt;
 
 }

@@ -1,7 +1,9 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+
+import { CouponStateService } from '../../services/coupon-state.service';
 
 @Component({
   selector: 'app-cart-summary',
@@ -13,9 +15,9 @@ import { RouterLink } from '@angular/router';
 export class CartSummaryComponent {
   @Input() subtotal = 0;
 
-  promoCode = '';
-  promoApplied = false;
-  promoDiscount = 0;
+  readonly couponState = inject(CouponStateService);
+
+  couponCode = '';
 
   get shipping(): number {
     return this.subtotal >= 100 ? 0 : 9.99;
@@ -26,13 +28,15 @@ export class CartSummaryComponent {
   }
 
   get total(): number {
-    return this.subtotal + this.shipping + this.tax - this.promoDiscount;
+    return this.subtotal + this.shipping + this.tax - this.couponState.discountAmount();
   }
 
-  applyPromo() {
-    if (this.promoCode.toUpperCase() === 'SPORT10') {
-      this.promoApplied = true;
-      this.promoDiscount = this.subtotal * 0.1;
-    }
+  applyPromo(): void {
+    this.couponState.apply(this.couponCode, this.subtotal);
+  }
+
+  removePromo(): void {
+    this.couponState.remove();
+    this.couponCode = '';
   }
 }

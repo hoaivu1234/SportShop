@@ -33,7 +33,7 @@ public class OrderItem {
 
     // ── Price / quantity snapshots (immutable after order is placed) ─────────
 
-    @Column(name = "product_name", length = 255, nullable = false)
+    @Column(length = 255, nullable = false)
     private String productName;
 
     /** Unit price captured at checkout time. */
@@ -49,15 +49,15 @@ public class OrderItem {
 
     // ── Variant attribute snapshots ──────────────────────────────────────────
 
-    @Column(name = "variant_sku", length = 100)
+    @Column(length = 100)
     private String variantSku;
 
-    @Column(name = "variant_size", length = 50)
+    @Column(length = 50)
     private String variantSize;
 
-    @Column(name = "variant_color", length = 50)
+    @Column(length = 50)
     private String variantColor;
 
-    @Column(name = "product_image_url", length = 500)
+    @Column(length = 500)
     private String productImageUrl;
 }

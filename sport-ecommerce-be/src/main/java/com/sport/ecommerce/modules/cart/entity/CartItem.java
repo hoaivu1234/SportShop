@@ -33,10 +33,9 @@ public class CartItem {
     private Integer quantity;
 
     /** Price locked in at the moment the item was added to cart. */
-    @Column(name = "price_snapshot", precision = 12, scale = 2)
+    @Column(precision = 12, scale = 2)
     private BigDecimal priceSnapshot;
 
     @CreationTimestamp
-    @Column(name = "added_at")
     private LocalDateTime addedAt;
 }

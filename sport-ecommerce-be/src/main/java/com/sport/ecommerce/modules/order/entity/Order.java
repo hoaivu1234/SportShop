@@ -37,7 +37,7 @@ public class Order {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "order_number", length = 100, nullable = false, unique = true)
+    @Column(length = 100, nullable = false, unique = true)
     private String orderNumber;
 
     // ── Line-item aggregate ──────────────────────────────────────────────────
@@ -49,21 +49,21 @@ public class Order {
     // ── Money ────────────────────────────────────────────────────────────────
 
     /** Sum of (item.price × item.quantity) before any discount. */
-    @Column(name = "subtotal", precision = 12, scale = 2, nullable = false)
+    @Column(precision = 12, scale = 2, nullable = false)
     private BigDecimal subtotal;
 
     /** Amount subtracted by coupons / promotions (0 if none). */
-    @Column(name = "discount_amount", precision = 12, scale = 2, nullable = false)
+    @Column(precision = 12, scale = 2, nullable = false)
     @Builder.Default
     private BigDecimal discountAmount = BigDecimal.ZERO;
 
     /** Flat shipping fee added to the order. */
-    @Column(name = "shipping_fee", precision = 12, scale = 2, nullable = false)
+    @Column(precision = 12, scale = 2, nullable = false)
     @Builder.Default
     private BigDecimal shippingFee = BigDecimal.ZERO;
 
     /** subtotal - discountAmount + shippingFee */
-    @Column(name = "total_price", precision = 12, scale = 2, nullable = false)
+    @Column(precision = 12, scale = 2, nullable = false)
     private BigDecimal totalPrice;
 
     // ── Status ───────────────────────────────────────────────────────────────
@@ -73,13 +73,13 @@ public class Order {
     @Builder.Default
     private OrderStatus status = OrderStatus.PENDING;
 
-    @Column(name = "payment_status", length = 30)
+    @Column(length = 30)
     private String paymentStatus;
 
     // ── Shipping address snapshot ─────────────────────────────────────────────
 
     @Convert(converter = ShippingAddressConverter.class)
-    @Column(name = "shipping_address", columnDefinition = "TEXT", nullable = false)
+    @Column(columnDefinition = "TEXT", nullable = false)
     private ShippingAddress shippingAddress;
 
     // ── Metadata ─────────────────────────────────────────────────────────────
@@ -88,11 +88,10 @@ public class Order {
     private String notes;
 
     @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     // ── Helpers ──────────────────────────────────────────────────────────────

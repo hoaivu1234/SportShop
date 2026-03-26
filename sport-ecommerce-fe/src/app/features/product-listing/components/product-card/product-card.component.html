@@ -22,11 +22,12 @@
 
     <button
       class="product-card__wishlist"
-      title="Add to Wishlist"
-      aria-label="Add to Wishlist"
-      (click)="$event.preventDefault()"
+      [class.product-card__wishlist--active]="wishlistState.isInWishlist(product.id)"
+      [title]="wishlistState.isInWishlist(product.id) ? 'Remove from Wishlist' : 'Add to Wishlist'"
+      [attr.aria-label]="wishlistState.isInWishlist(product.id) ? 'Remove from Wishlist' : 'Add to Wishlist'"
+      (click)="onToggleWishlist($event)"
     >
-      <i class="far fa-heart"></i>
+      <i [class]="wishlistState.isInWishlist(product.id) ? 'fas fa-heart' : 'far fa-heart'"></i>
     </button>
   </div>
 
@@ -42,7 +43,7 @@
           <span class="product-card__original-price">{{ product.originalPrice | currency }}</span>
         }
       </div>
-      <button class="btn-add-cart" (click)="$event.preventDefault()" [disabled]="isOutOfStock">
+      <button class="btn-add-cart" (click)="onAddToCart($event)" [disabled]="isOutOfStock">
         <i class="fas fa-shopping-bag"></i>
         <span>Add</span>
       </button>

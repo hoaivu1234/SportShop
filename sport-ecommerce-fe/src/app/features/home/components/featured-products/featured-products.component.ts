@@ -5,6 +5,7 @@ import { forkJoin } from 'rxjs';
 import { ProductCardComponent, ProductCard } from '../../../../shared/components/product-card/product-card.component';
 import { ProductService } from '../../../admin/products/services/product.service';
 import { CategoryService, CategoryTreeNode } from '../../../admin/categories/services/category.service';
+import { ReviewService } from '../../../product-detail/services/review.service';
 
 /** Extends ProductCard with a sport tag derived from the category hierarchy. */
 interface TrendingProduct extends ProductCard {
@@ -22,6 +23,7 @@ interface TrendingProduct extends ProductCard {
 export class FeaturedProductsComponent implements OnInit {
   private readonly productService = inject(ProductService);
   private readonly categoryService = inject(CategoryService);
+  private readonly reviewService = inject(ReviewService);
 
   activeTab = signal<string>('all');
 
@@ -74,7 +76,6 @@ export class FeaturedProductsComponent implements OnInit {
           // discountPrice = the LOWER sale price shown as the active price
           const displayPrice  = p.discountPrice ?? p.price;
           const originalPrice = p.discountPrice ? p.price : undefined;
-
           return {
             id: p.id,
             name: p.name,
@@ -84,9 +85,19 @@ export class FeaturedProductsComponent implements OnInit {
             category: p.categoryName ?? '',
             rating: 0,
             reviewCount: 0,
-            badge: p.discountPrice ? 'SALE' : undefined,
+            badge: p.discountPrice ? 'SALE' : 'NEW',
             sport: tagMap.get(p.categoryId ?? 0) ?? 'all',
           };
+        });
+
+        // Load review data for each product
+        this.allProducts.forEach(product => {
+          this.reviewService.getProductSummary(product.id).subscribe({
+            next: ({ data }) => {
+              product.rating = data.averageRating;
+              product.reviewCount = data.totalReviews;
+            }
+          });
         });
 
         this.isLoading = false;

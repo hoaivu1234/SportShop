@@ -23,8 +23,6 @@ interface CategoryGroup {
   items: { id: number; name: string }[];
 }
 
-const BRANDS = ['ActiveGear', 'EliteFlex', 'SureTech', 'BuiltFit', 'Ironstrength'];
-
 @Component({
   selector: 'app-filter-sidebar',
   standalone: true,
@@ -52,12 +50,10 @@ export class FilterSidebarComponent implements OnChanges {
 
   localKeyword    = '';
   localCategoryId: number | null = null;
-  localBrand:      string | null = null;
   /** Slider values — committed to URL only on mouseup (avoids API flood). */
   localMinPrice = 0;
   localMaxPrice = MAX_PRICE_CAP;
 
-  readonly brands      = BRANDS;
   readonly maxPriceCap = MAX_PRICE_CAP;
 
   // ── Derived: build category groups from tree ──────────────────────────────
@@ -85,7 +81,6 @@ export class FilterSidebarComponent implements OnChanges {
       const s = this.filterState;
       this.localKeyword    = s.keyword;
       this.localCategoryId = s.categoryId;
-      this.localBrand      = s.brand;
       this.localMinPrice   = s.minPrice ?? 0;
       this.localMaxPrice   = s.maxPrice ?? this.maxPriceCap;
     }
@@ -103,12 +98,6 @@ export class FilterSidebarComponent implements OnChanges {
     this.filterChange.emit({ categoryId: next });
   }
 
-  onBrandToggle(brand: string): void {
-    const next = this.localBrand === brand ? null : brand;
-    this.localBrand = next;
-    this.filterChange.emit({ brand: next });
-  }
-
   /**
    * Commit price range to URL only when the user releases the slider.
    * Using (change) instead of (input) prevents an API call on every pixel.
@@ -124,7 +113,6 @@ export class FilterSidebarComponent implements OnChanges {
     this.filterChange.emit({
       keyword:    '',
       categoryId: null,
-      brand:      null,
       minPrice:   null,
       maxPrice:   null,
     });

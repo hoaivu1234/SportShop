@@ -83,21 +83,4 @@
     </div>
   </div>
 
-  <!-- Brand -->
-  <div class="filter-section">
-    <h4 class="filter-section__title">Brand</h4>
-    @for (brand of brands; track brand) {
-      <label class="checkbox-label" [class.checkbox-label--active]="localBrand === brand">
-        <input
-          type="radio"
-          name="brand"
-          [checked]="localBrand === brand"
-          (change)="onBrandToggle(brand)"
-        />
-        <span class="checkmark"></span>
-        {{ brand }}
-      </label>
-    }
-  </div>
-
 </aside>

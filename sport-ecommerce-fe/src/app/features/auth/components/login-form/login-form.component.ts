@@ -6,6 +6,7 @@ import {
   FormGroup,
   Validators,
 } from '@angular/forms';
+import { OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
@@ -16,7 +17,7 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './login-form.component.html',
   styleUrl: './login-form.component.css',
 })
-export class LoginFormComponent {
+export class LoginFormComponent implements OnInit{
   @Output() switchToRegister = new EventEmitter<void>();
 
   form: FormGroup;
@@ -37,8 +38,28 @@ export class LoginFormComponent {
     });
   }
 
+  ngOnInit(): void {
+    const params = this.route.snapshot.queryParams;
+
+    const accessToken = params['accessToken'];
+    const refreshToken = params['refreshToken'];
+
+    if (accessToken && refreshToken) {
+      localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem('refreshToken', refreshToken);
+
+      const returnUrl =
+        this.route.snapshot.queryParamMap.get('returnUrl') ?? '/';
+      this.router.navigateByUrl(returnUrl);
+    }
+  }
+
   togglePassword(): void {
     this.showPassword = !this.showPassword;
+  }
+
+  loginWithGoogle(): void {
+    window.location.href = 'http://localhost:8080/oauth2/authorization/google';
   }
 
   onSubmit(): void {

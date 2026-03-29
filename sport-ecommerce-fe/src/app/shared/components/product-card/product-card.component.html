@@ -10,7 +10,11 @@
     </a>
 
     @if (product.badge) {
-      <span class="product-card__badge" [class.badge--sale]="product.badge === 'SALE'" [class.badge--new]="product.badge === 'NEW'">
+      <span
+        class="product-card__badge"
+        [class.badge--sale]="product.badge === 'SALE'"
+        [class.badge--new]="product.badge === 'NEW'"
+      >
         {{ product.badge }}
       </span>
     }
@@ -30,15 +34,21 @@
     <h3 class="product-card__name">
       <a [routerLink]="['/products', product.id]">{{ product.name }}</a>
     </h3>
-    <app-rating [value]="product.rating" [showCount]="true" [count]="product.reviewCount" />
+    <app-rating
+      [value]="product.rating"
+      [showCount]="true"
+      [count]="product.reviewCount"
+    />
     <div class="product-card__price-row">
       <span class="product-card__price">${{ product.price.toFixed(2) }}</span>
       @if (product.originalPrice) {
-        <span class="product-card__original">${{ product.originalPrice.toFixed(2) }}</span>
+        <span class="product-card__original"
+          >${{ product.originalPrice.toFixed(2) }}</span
+        >
       }
     </div>
-    <button class="product-card__add-btn">
+    <a class="product-card__add-btn" [routerLink]="['/products', product.id]">
       <i class="fas fa-shopping-bag"></i> Add to Cart
-    </button>
+    </a>
   </div>
 </div>

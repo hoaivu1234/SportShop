@@ -2,6 +2,7 @@ package com.sport.ecommerce.config.security;
 
 import com.sport.ecommerce.common.constant.AppConstant;
 import com.sport.ecommerce.modules.auth.service.RefreshTokenService;
+import com.sport.ecommerce.modules.user.repository.RoleRepository;
 import com.sport.ecommerce.modules.user.repository.UserRepository;
 import com.sport.ecommerce.security.handler.AuthEntryPoint;
 import com.sport.ecommerce.security.jwt.JwtAuthenticationFilter;
@@ -9,6 +10,7 @@ import com.sport.ecommerce.security.jwt.JwtService;
 import com.sport.ecommerce.security.oauth2.OAuth2SuccessHandler;
 import com.sport.ecommerce.security.userdetails.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -27,6 +29,13 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
     private final RefreshTokenService refreshTokenService;
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
+
+    @Value("${jwt.expiration}")
+    private long jwtExpiration;
 
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
@@ -39,8 +48,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public OAuth2SuccessHandler oAuth2SuccessHandler(UserRepository userRepository, JwtService jwtService, RefreshTokenService refreshTokenService ) {
-        return new OAuth2SuccessHandler(userRepository, jwtService, refreshTokenService);
+    public OAuth2SuccessHandler oAuth2SuccessHandler() {
+        return new OAuth2SuccessHandler(userRepository, jwtService, refreshTokenService, roleRepository, frontendUrl, jwtExpiration);
     }
 
     @Bean
@@ -53,7 +62,9 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                AppConstant.API_PREFIX + "/auth/**",
+                                AppConstant.API_PREFIX + "/auth/login",
+                                AppConstant.API_PREFIX + "/auth/register",
+                                AppConstant.API_PREFIX + "/auth/refresh-token",
                                 AppConstant.PUBLIC_PREFIX + "/**",
                                 "/oauth2/**",
                                 "/login/**"
@@ -66,7 +77,6 @@ public class SecurityConfig {
                 .exceptionHandling(ex ->
                         ex.authenticationEntryPoint(new AuthEntryPoint())
                 )
-
                 .oauth2Login(oauth -> oauth
                         .authorizationEndpoint(authEndpoint ->
                                 authEndpoint.baseUri("/oauth2/authorization")
@@ -74,12 +84,10 @@ public class SecurityConfig {
                         .redirectionEndpoint(redirection ->
                                 redirection.baseUri("/login/oauth2/code/*")
                         )
-                        .successHandler(oAuth2SuccessHandler(userRepository, jwtService, refreshTokenService))
+                        .successHandler(oAuth2SuccessHandler())
                 )
-
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
-
 }

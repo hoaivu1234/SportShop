@@ -86,6 +86,10 @@ export class FilterSidebarComponent implements OnChanges {
     }
   }
 
+  onSaleToggle(): void {
+    this.filterChange.emit({ onSale: !this.filterState.onSale });
+  }
+
   // ── Event emitters ────────────────────────────────────────────────────────
 
   onKeywordInput(value: string): void {
@@ -111,10 +115,12 @@ export class FilterSidebarComponent implements OnChanges {
 
   clearAll(): void {
     this.filterChange.emit({
-      keyword:    '',
-      categoryId: null,
-      minPrice:   null,
-      maxPrice:   null,
+      keyword:      '',
+      categoryId:   null,
+      categorySlug: null,
+      minPrice:     null,
+      maxPrice:     null,
+      onSale:       false,
     });
     this.keywordChange.emit('');
   }

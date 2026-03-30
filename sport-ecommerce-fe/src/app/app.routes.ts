@@ -215,6 +215,14 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard],
   },
 
+  {
+    path: 'oauth2/redirect',
+    loadComponent: () =>
+      import('./features/auth/components/oauth2-redirect/oauth2-redirect.component').then(
+        (m) => m.OAuth2RedirectComponent,
+      ),
+  },
+
   // ── Error pages ────────────────────────────────────────────────────────────
   {
     path: 'forbidden',

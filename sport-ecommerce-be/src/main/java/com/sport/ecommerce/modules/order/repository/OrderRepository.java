@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -44,4 +46,12 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             WHERE o.orderNumber = :orderNumber
             """)
     Optional<Order> findByOrderNumberWithItems(@Param("orderNumber") String orderNumber);
+
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.user.id = :userId")
+    long countByUserId(@Param("userId") Long userId);
+
+    @Query("SELECT COALESCE(SUM(o.totalPrice), 0) FROM Order o WHERE o.user.id = :userId")
+    BigDecimal sumTotalPriceByUserId(@Param("userId") Long userId);
+
+    List<Order> findTop3ByUserIdOrderByCreatedAtDesc(Long userId);
 }

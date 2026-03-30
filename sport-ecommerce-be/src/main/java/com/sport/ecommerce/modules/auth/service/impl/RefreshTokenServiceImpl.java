@@ -8,8 +8,10 @@ import com.sport.ecommerce.modules.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -18,9 +20,20 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     private final RefreshTokenRepository refreshTokenRepository;
 
     @Override
+    @Transactional
     public RefreshToken rotate(String token) {
-        RefreshToken oldToken = refreshTokenRepository.findByToken(token).orElseThrow();
-        refreshTokenRepository.delete(oldToken);
+        RefreshToken oldToken = refreshTokenRepository.findByToken(token)
+                .orElseThrow(() -> new BusinessException(
+                        HttpStatus.UNAUTHORIZED.value(), "Invalid refresh token"));
+
+        if (oldToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+            // Clean up expired token and reject
+            refreshTokenRepository.deleteByTokenValue(token);
+            throw new BusinessException(HttpStatus.UNAUTHORIZED.value(), "Refresh token has expired");
+        }
+
+        // Rotate: delete old token via bulk query (safe against StaleStateException)
+        refreshTokenRepository.deleteByTokenValue(token);
 
         RefreshToken newToken = new RefreshToken();
         newToken.setUser(oldToken.getUser());
@@ -31,6 +44,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     }
 
     @Override
+    @Transactional
     public RefreshToken create(User user) {
         RefreshToken refreshToken = new RefreshToken();
         refreshToken.setUser(user);

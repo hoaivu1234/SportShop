@@ -94,8 +94,10 @@ export interface ProductListParams {
   direction?: SortDirection;
   keyword?: string;
   categoryId?: number;
+  categorySlug?: string;
   status?: string;
   brand?: string;
   minPrice?: number;
   maxPrice?: number;
+  onSale?: boolean;
 }

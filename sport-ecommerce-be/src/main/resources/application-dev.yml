@@ -9,9 +9,9 @@ logging:
 
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/sport_ecommerce?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&createDatabaseIfNotExist=true
-    username: root
-    password: root
+    url: ${DB_URL:jdbc:mysql://localhost:3306/sport_ecommerce?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&createDatabaseIfNotExist=true}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
     hikari:
@@ -30,7 +30,22 @@ spring:
     baseline-on-migrate: true
     baseline-version: 0
 
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+
 cloudinary:
-  cloud-name: dezksnpfz
-  api-key: 859546286467584
-  api-secret: PIwXjgyPw3Qi-zsX2qPch7IFzGw
+  cloud-name: ${CLOUDINARY_CLOUD_NAME}
+  api-key: ${CLOUDINARY_API_KEY}
+  api-secret: ${CLOUDINARY_API_SECRET}
+
+jwt:
+  secret: ${JWT_SECRET:sport-ecommerce-dev-secret-change-in-production-min32chars}
+  expiration: 900000
+
+app:
+  frontend-url: ${FRONTEND_URL:http://localhost:4200}

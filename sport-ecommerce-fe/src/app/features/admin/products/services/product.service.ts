@@ -27,14 +27,16 @@ export class ProductService {
       PUBLIC_PRODUCT_API.BASE,
       { page: params.page, size: params.size },
       {
-        keyword:    params.keyword,
-        categoryId: params.categoryId,
-        brand:      params.brand,
-        minPrice:   params.minPrice,
-        maxPrice:   params.maxPrice,
+        keyword:      params.keyword,
+        categoryId:   params.categoryId,
+        categorySlug: params.categorySlug,
+        brand:        params.brand,
+        minPrice:     params.minPrice,
+        maxPrice:     params.maxPrice,
+        onSale:       params.onSale,
         // Backend expects sortBy/sortDir as separate @RequestParam, not combined Pageable format
-        sortBy:     params.sort      ?? 'createdAt',
-        sortDir:    params.direction ?? 'desc',
+        sortBy:       params.sort      ?? 'createdAt',
+        sortDir:      params.direction ?? 'desc',
       }
     );
   }

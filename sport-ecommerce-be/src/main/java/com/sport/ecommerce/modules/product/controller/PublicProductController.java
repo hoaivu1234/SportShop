@@ -28,9 +28,11 @@ public class PublicProductController {
     public ResponseEntity<ApiResponse<PageResponse<ProductListResponse>>> getProducts(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String categorySlug,
             @RequestParam(required = false) String brand,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(defaultValue = "false") boolean onSale,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
@@ -39,10 +41,12 @@ public class PublicProductController {
         ProductFilterRequest filter = new ProductFilterRequest();
         filter.setKeyword(keyword);
         filter.setCategoryId(categoryId);
+        filter.setCategorySlug(categorySlug);
         filter.setBrand(brand);
         filter.setStatus("ACTIVE");   // always enforced for public access
         filter.setMinPrice(minPrice);
         filter.setMaxPrice(maxPrice);
+        filter.setOnSale(onSale);
         filter.setPage(page);
         filter.setSize(size);
         filter.setSortBy(sortBy);

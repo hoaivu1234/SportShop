@@ -8,19 +8,25 @@ import com.sport.ecommerce.modules.user.entity.Role;
 import com.sport.ecommerce.modules.user.entity.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
 import java.util.Date;
 import java.util.List;
-
-import com.sport.ecommerce.common.constant.AppConstant;
 
 @Service
 public class JwtService {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
+    @Value("${jwt.secret}")
+    private String secretKey;
+
+    @Value("${jwt.expiration}")
+    private long expirationTime;
+
     public String generateToken(User user) {
         Date now = new Date();
-        Date expiryDate = new Date(System.currentTimeMillis() + AppConstant.EXPIRATION_TIME);
+        Date expiryDate = new Date(System.currentTimeMillis() + expirationTime);
 
         List<String> roles =
                 user.getRoles()
@@ -33,7 +39,7 @@ public class JwtService {
                 .withClaim("roles", roles)
                 .withIssuedAt(now)
                 .withExpiresAt(expiryDate)
-                .sign(Algorithm.HMAC512(AppConstant.SECRET_KEY));
+                .sign(Algorithm.HMAC512(secretKey));
     }
 
     public String getEmailFromJWT(String token) {
@@ -42,9 +48,8 @@ public class JwtService {
 
     public boolean validateToken(String authToken) {
         try {
-            DecodedJWT token = JWT.require(Algorithm.HMAC512(AppConstant.SECRET_KEY)).build().verify(authToken);
+            DecodedJWT token = JWT.require(Algorithm.HMAC512(secretKey)).build().verify(authToken);
 
-            // check token Expire
             Date expireAt = token.getExpiresAt();
             if (expireAt.compareTo(new Date()) > 0) {
                 return true;

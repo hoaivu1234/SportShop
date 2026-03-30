@@ -8,20 +8,25 @@
 
     <!-- Nav Links (desktop) -->
     <nav class="navbar__nav">
-      @for (link of navLinks; track link.path) {
+      @for (link of navLinks; track link.label) {
         <a
           [routerLink]="link.path"
+          [queryParams]="link.queryParams"
           class="navbar__nav-link"
           [class.navbar__nav-link--highlight]="link.highlight"
+          [class.navbar__nav-link--active]="isLinkActive(link)"
         >{{ link.label }}</a>
       }
     </nav>
 
     <!-- Actions -->
     <div class="navbar__actions">
-      <button class="navbar__action-btn" title="Search">
-        <i class="fas fa-search"></i>
+      <!-- Search toggle -->
+      <button class="navbar__action-btn" title="Search" (click)="toggleSearch()"
+              [class.navbar__action-btn--active]="searchOpen()">
+        <i class="fas" [class.fa-search]="!searchOpen()" [class.fa-times]="searchOpen()"></i>
       </button>
+
       <a class="navbar__action-btn" title="Wishlist" routerLink="/wishlist">
         <i class="far fa-heart"></i>
       </a>
@@ -66,14 +71,37 @@
     </button>
   </div>
 
+  <!-- Search Bar (slides in below navbar) -->
+  @if (searchOpen()) {
+    <div class="navbar__search-bar">
+      <div class="navbar__search-inner container">
+        <i class="fas fa-search navbar__search-icon"></i>
+        <input
+          #searchInput
+          type="text"
+          class="navbar__search-input"
+          placeholder="Search products, brands, categories…"
+          [(ngModel)]="searchQuery"
+          (keyup.enter)="submitSearch()"
+          autocomplete="off"
+        />
+        <button class="navbar__search-submit" (click)="submitSearch()" [disabled]="!searchQuery.trim()">
+          Search
+        </button>
+      </div>
+    </div>
+  }
+
   <!-- Mobile Menu -->
   @if (mobileMenuOpen()) {
     <div class="navbar__mobile-menu">
-      @for (link of navLinks; track link.path) {
+      @for (link of navLinks; track link.label) {
         <a
           [routerLink]="link.path"
+          [queryParams]="link.queryParams"
           class="navbar__mobile-link"
           [class.navbar__mobile-link--highlight]="link.highlight"
+          [class.navbar__mobile-link--active]="isLinkActive(link)"
           (click)="mobileMenuOpen.set(false)"
         >{{ link.label }}</a>
       }

@@ -23,6 +23,7 @@ export const AUTH_ROUTES = {
   FORBIDDEN: '/forbidden',
   HOME: '/',
   ADMIN_DASHBOARD: '/admin/dashboard',
+  OAUTH2_REDIRECT: '/oauth2/redirect',
 } as const;
 
 /** Public routes that skip the auth interceptor */
@@ -32,3 +33,7 @@ export const PUBLIC_URLS: readonly string[] = [
   '/api/v1/auth/refresh-token',
   'cloudinary.com'
 ] as const;
+
+export const NO_CREDENTIALS_URLS: readonly string[] = [
+  'api.cloudinary.com'
+];

@@ -11,46 +11,63 @@
       </tr>
     </thead>
     <tbody>
-      @for (customer of customers; track customer.name) {
+      @if (isLoading) {
         <tr>
-          <td>
-            <div class="customer-cell">
-              <div class="customer-initials status-bg-{{ customer.statusClass }}">{{ customer.initials }}</div>
-              <span class="customer-name">{{ customer.name }}</span>
-            </div>
-          </td>
-          <td>
-            <span class="status-badge badge-{{ customer.statusClass }}">{{ customer.status }}</span>
-          </td>
-          <td class="orders-count">{{ customer.orders }}</td>
-          <td class="ltv">{{ customer.ltv }}</td>
-          <td class="joined-date">{{ customer.joined }}</td>
-          <td>
-            <div class="action-btns">
-              <button class="action-btn" title="View">
-                <i class="fas fa-eye"></i>
-              </button>
-              <button class="action-btn" title="Edit">
-                <i class="fas fa-pen"></i>
-              </button>
-            </div>
-          </td>
+          <td colspan="6" class="state-cell">Loading customers…</td>
         </tr>
+      } @else if (customers.length === 0) {
+        <tr>
+          <td colspan="6" class="state-cell">No customers found.</td>
+        </tr>
+      } @else {
+        @for (customer of customers; track customer.id) {
+          <tr
+            [class.row-selected]="customer.id === selectedId"
+            (click)="selectCustomer(customer)"
+            style="cursor: pointer"
+          >
+            <td>
+              <div class="customer-cell">
+                <div class="customer-initials status-bg-{{ customer.tierClass }}">{{ customer.initials }}</div>
+                <span class="customer-name">{{ customer.name }}</span>
+              </div>
+            </td>
+            <td>
+              <span class="status-badge badge-{{ customer.tierClass }}">{{ customer.tier }}</span>
+            </td>
+            <td class="orders-count">{{ customer.orderCount }}</td>
+            <td class="ltv">{{ formatLtv(customer.ltv) }}</td>
+            <td class="joined-date">{{ formatDate(customer.joinedDate) }}</td>
+            <td>
+              <div class="action-btns">
+                <button class="action-btn" title="View"
+                        (click)="$event.stopPropagation(); selectCustomer(customer)">
+                  <i class="fas fa-eye"></i>
+                </button>
+                <button class="action-btn" title="Edit">
+                  <i class="fas fa-pen"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
       }
     </tbody>
   </table>
 </div>
 
 <div class="pagination-row">
-  <span class="results-info">Showing {{ customers.length }} of 12,642 customers</span>
+  <span class="results-info">Showing {{ customers.length }} of {{ totalElements }} customers</span>
   <div class="pagination">
-    <button class="page-btn" disabled>
+    <button class="page-btn" [disabled]="currentPage === 0" (click)="changePage(currentPage - 1)">
       <i class="fas fa-chevron-left"></i> Previous
     </button>
-    <button class="page-num active">1</button>
-    <button class="page-num">2</button>
-    <button class="page-num">3</button>
-    <button class="page-btn">
+    @for (page of pageNumbers; track page) {
+      <button class="page-num" [class.active]="page === currentPage" (click)="changePage(page)">
+        {{ page + 1 }}
+      </button>
+    }
+    <button class="page-btn" [disabled]="currentPage >= totalPages - 1" (click)="changePage(currentPage + 1)">
       Next <i class="fas fa-chevron-right"></i>
     </button>
   </div>

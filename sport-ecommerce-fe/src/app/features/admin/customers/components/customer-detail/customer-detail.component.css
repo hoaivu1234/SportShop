@@ -173,3 +173,20 @@
   font-size: 11px;
   color: var(--color-gray);
 }
+
+.detail-placeholder {
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: var(--color-gray);
+}
+
+.placeholder-icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+  opacity: 0.4;
+}
+
+.placeholder-text {
+  font-size: 13px;
+}

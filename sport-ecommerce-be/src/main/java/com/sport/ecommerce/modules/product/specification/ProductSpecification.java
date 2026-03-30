@@ -70,6 +70,11 @@ public class ProductSpecification {
         };
     }
 
+    /** Only products that have a discount price set. */
+    public static Specification<Product> hasDiscount() {
+        return (root, query, cb) -> cb.isNotNull(root.get("discountPrice"));
+    }
+
     /** Always excludes soft-deleted products from every list query */
     public static Specification<Product> notDeleted() {
         return (root, query, cb) -> cb.isFalse(root.get("isDeleted"));
@@ -85,14 +90,21 @@ public class ProductSpecification {
             String brand,
             String status,
             BigDecimal minPrice,
-            BigDecimal maxPrice
+            BigDecimal maxPrice,
+            boolean onSale
     ) {
-        return Specification
+        Specification<Product> spec = Specification
                 .where(notDeleted())
                 .and(hasKeyword(keyword))
                 .and(hasCategoryIds(categoryIds))
                 .and(hasBrand(brand))
                 .and(hasStatus(status))
                 .and(hasPriceBetween(minPrice, maxPrice));
+
+        if (onSale) {
+            spec = spec.and(hasDiscount());
+        }
+
+        return spec;
     }
 }

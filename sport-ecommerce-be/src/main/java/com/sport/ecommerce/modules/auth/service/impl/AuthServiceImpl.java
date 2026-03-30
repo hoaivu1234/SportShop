@@ -95,4 +95,11 @@ public class AuthServiceImpl implements AuthService {
 
         return new LoginResponse(userMapper.toResponse(user), access, newToken.getToken());
     }
+
+    @Override
+    public UserResponse getCurrentUser() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email).orElseThrow();
+        return userMapper.toResponse(user);
+    }
 }

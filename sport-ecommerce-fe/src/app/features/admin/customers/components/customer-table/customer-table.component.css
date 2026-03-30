@@ -30,6 +30,17 @@
   background: var(--color-light-gray);
 }
 
+.customer-table tbody tr.row-selected {
+  background: rgba(232, 82, 26, 0.06);
+}
+
+.state-cell {
+  padding: 32px;
+  text-align: center;
+  color: var(--color-gray);
+  font-size: 13px;
+}
+
 .customer-cell {
   display: flex;
   align-items: center;

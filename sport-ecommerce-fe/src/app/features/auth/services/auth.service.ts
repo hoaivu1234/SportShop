@@ -1,9 +1,8 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, map, tap } from 'rxjs';
 import { StorageService, UserResponse } from '../../../core/services/storage/storage.service';
 import { AUTH_API } from '../../../core/constants/api-path.constant';
-import { DatePipe } from '@angular/common';
 
 export interface AuthTokens {
   accessToken: string;
@@ -11,11 +10,17 @@ export interface AuthTokens {
   user: UserResponse;
 }
 
-interface LoginApiResponse {
+export interface LoginApiResponse {
   status: number;
   message: string;
   data: AuthTokens;
   timestamp: string;
+}
+
+interface MeApiResponse {
+  status: number;
+  message: string;
+  data: UserResponse;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -47,10 +52,28 @@ export class AuthService {
     }
   }
 
+  /** Called after OAuth2 redirect — verifies the HttpOnly cookie and loads user info. */
+  getMe(): Observable<UserResponse> {
+    return this.http.get<MeApiResponse>(AUTH_API.ME).pipe(
+      tap((res) => {
+        if (res.data) {
+          this.storage.setUserInfo(res.data);
+          this._loggedIn.set(true);
+        }
+      }),
+      map((res) => res.data),
+    );
+  }
+
   refreshToken(refreshToken: string): Observable<LoginApiResponse> {
     return this.http
       .post<LoginApiResponse>(AUTH_API.REFRESH, { refreshToken })
       .pipe(tap((res) => this.handleAuthResponse(res)));
+  }
+
+  /** Cookie-based refresh for OAuth2 users — no token in body, backend reads cookie. */
+  refreshTokenFromCookie(): Observable<LoginApiResponse> {
+    return this.http.post<LoginApiResponse>(AUTH_API.REFRESH, null);
   }
 
   getAccessToken(): string | null {

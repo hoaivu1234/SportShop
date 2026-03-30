@@ -1,66 +1,84 @@
-<div class="detail-card">
-  <!-- Profile -->
-  <div class="profile-section">
-    <div class="avatar-lg">{{ customer.initials }}</div>
-    <div class="profile-info">
-      <div class="profile-name">{{ customer.name }}</div>
-      <span class="vip-badge">{{ customer.status }}</span>
-    </div>
+@if (isLoading) {
+  <div class="detail-card detail-placeholder">
+    <div class="placeholder-icon"><i class="fas fa-spinner fa-spin"></i></div>
+    <div class="placeholder-text">Loading customer details…</div>
   </div>
-
-  <div class="profile-actions">
-    <button class="btn btn-secondary">View Full Profile</button>
-    <button class="btn btn-primary">Edit Details</button>
+} @else if (!customer) {
+  <div class="detail-card detail-placeholder">
+    <div class="placeholder-icon"><i class="fas fa-user-circle"></i></div>
+    <div class="placeholder-text">Select a customer to view details</div>
   </div>
+} @else {
+  <div class="detail-card">
+    <!-- Profile -->
+    <div class="profile-section">
+      <div class="avatar-lg">{{ customer.initials }}</div>
+      <div class="profile-info">
+        <div class="profile-name">{{ customer.name }}</div>
+        <span class="vip-badge">{{ customer.tier }}</span>
+      </div>
+    </div>
 
-  <!-- Stats -->
-  <div class="stats-row">
-    <div class="stat-item">
-      <div class="stat-val">{{ customer.orders }}</div>
-      <div class="stat-lbl">Orders</div>
+    <div class="profile-actions">
+      <button class="btn btn-secondary">View Full Profile</button>
+      <button class="btn btn-primary">Edit Details</button>
     </div>
-    <div class="stat-item">
-      <div class="stat-val">{{ customer.ltv }}</div>
-      <div class="stat-lbl">LTV</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-val risk">{{ customer.riskScore }}</div>
-      <div class="stat-lbl">Risk</div>
-    </div>
-  </div>
 
-  <!-- Contact -->
-  <div class="section">
-    <div class="section-label">CONTACT INFO</div>
-    <div class="contact-row">
-      <i class="fas fa-envelope contact-icon"></i>
-      <span>{{ customer.email }}</span>
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-item">
+        <div class="stat-val">{{ customer.orderCount }}</div>
+        <div class="stat-lbl">Orders</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val">{{ formatLtv(customer.ltv) }}</div>
+        <div class="stat-lbl">LTV</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val risk">{{ customer.riskLevel }}</div>
+        <div class="stat-lbl">Risk</div>
+      </div>
     </div>
-    <div class="contact-row">
-      <i class="fas fa-phone contact-icon"></i>
-      <span>{{ customer.phone }}</span>
-    </div>
-    <div class="contact-row">
-      <i class="fas fa-clock contact-icon"></i>
-      <span>Last seen {{ customer.lastSeen }}</span>
-    </div>
-  </div>
 
-  <!-- Recent Activity -->
-  <div class="section">
-    <div class="section-label">RECENT ACTIVITY</div>
-    <div class="activity-list">
-      @for (activity of recentActivity; track activity.text) {
-        <div class="activity-item">
-          <div class="activity-icon" [style.background]="activity.color + '20'" [style.color]="activity.color">
-            <i class="fas {{ activity.icon }}"></i>
-          </div>
-          <div class="activity-content">
-            <div class="activity-text">{{ activity.text }}</div>
-            <div class="activity-time">{{ activity.time }}</div>
-          </div>
+    <!-- Contact -->
+    <div class="section">
+      <div class="section-label">CONTACT INFO</div>
+      <div class="contact-row">
+        <i class="fas fa-envelope contact-icon"></i>
+        <span>{{ customer.email }}</span>
+      </div>
+      <div class="contact-row">
+        <i class="fas fa-phone contact-icon"></i>
+        <span>{{ customer.phone || '—' }}</span>
+      </div>
+      <div class="contact-row">
+        <i class="fas fa-clock contact-icon"></i>
+        <span>Last seen {{ customer.lastSeen }}</span>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="section">
+      <div class="section-label">RECENT ACTIVITY</div>
+      @if (customer.recentActivity.length === 0) {
+        <div style="font-size:12px; color: var(--color-gray)">No recent activity</div>
+      } @else {
+        <div class="activity-list">
+          @for (activity of customer.recentActivity; track activity.text) {
+            <div class="activity-item">
+              <div class="activity-icon"
+                   [style.background]="activity.color + '20'"
+                   [style.color]="activity.color">
+                <i class="fas {{ activity.icon }}"></i>
+              </div>
+              <div class="activity-content">
+                <div class="activity-text">{{ activity.text }}</div>
+                <div class="activity-time">{{ activity.time }}</div>
+              </div>
+            </div>
+          }
         </div>
       }
     </div>
   </div>
-</div>
+}

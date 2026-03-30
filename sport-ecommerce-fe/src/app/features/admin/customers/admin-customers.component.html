@@ -4,17 +4,6 @@
     <h1 class="page-title">CUSTOMERS</h1>
   </div>
 
-  <!-- Stats Cards -->
-  <div class="stats-grid">
-    @for (stat of statsCards; track stat.label) {
-      <div class="stat-card">
-        <div class="stat-value">{{ stat.value }}</div>
-        <div class="stat-label">{{ stat.label }}</div>
-        <div class="stat-note note-{{ stat.noteClass }}">{{ stat.note }}</div>
-      </div>
-    }
-  </div>
-
   <!-- Two-Column Layout -->
   <div class="customers-layout">
     <!-- Left: Table -->
@@ -22,7 +11,9 @@
       <div class="table-card">
         <div class="table-header">
           <div class="table-header-left">
-            <h3 class="table-title">Database <span class="filter-badge">3 filtered</span></h3>
+            <h3 class="table-title">Database
+              <span class="filter-badge">{{ totalElements() }} total</span>
+            </h3>
           </div>
           <div class="table-header-right">
             <button class="btn btn-secondary btn-sm">
@@ -37,20 +28,37 @@
         <div class="table-controls">
           <div class="search-wrapper">
             <i class="fas fa-search search-icon"></i>
-            <input type="text" class="search-input" placeholder="Search customers..." [(ngModel)]="searchQuery" />
+            <input
+              type="text"
+              class="search-input"
+              placeholder="Search customers..."
+              [(ngModel)]="searchQuery"
+              (ngModelChange)="onSearchInput($event)"
+            />
           </div>
           <button class="btn btn-secondary btn-sm">
             <i class="fas fa-sliders"></i> Filters
           </button>
         </div>
 
-        <app-customer-table></app-customer-table>
+        <app-customer-table
+          [customers]="customers()"
+          [totalElements]="totalElements()"
+          [totalPages]="totalPages()"
+          [currentPage]="currentPage()"
+          [isLoading]="isLoading()"
+          (customerSelected)="onCustomerSelect($event)"
+          (pageChanged)="onPageChange($event)"
+        ></app-customer-table>
       </div>
     </div>
 
     <!-- Right: Detail -->
     <div class="detail-col">
-      <app-customer-detail></app-customer-detail>
+      <app-customer-detail
+        [customer]="selectedCustomer()"
+        [isLoading]="detailLoading()"
+      ></app-customer-detail>
     </div>
   </div>
 </div>

@@ -3,6 +3,7 @@ package com.sport.ecommerce.security.jwt;
 import com.sport.ecommerce.security.userdetails.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -34,18 +35,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String jwt = this.getJwtFromRequest(request);
             UsernamePasswordAuthenticationToken authentication = null;
             if (StringUtils.hasText(jwt) && this.jwtService.validateToken(jwt)) {
+                String email = this.jwtService.getEmailFromJWT(jwt);
+                UserDetails userDetail = this.userDetailsService.loadUserByUsername(email);
 
-                if (SecurityContextHolder.getContext().getAuthentication() == null) {
-                    String email = this.jwtService.getEmailFromJWT(jwt);
-                    UserDetails userDetail = this.userDetailsService.loadUserByUsername(email);
-
-                    if (StringUtils.hasText(userDetail.getUsername())) {
-                        authentication = new UsernamePasswordAuthenticationToken(userDetail, null, userDetail.getAuthorities());
-                        SecurityContextHolder.getContext().setAuthentication(authentication);
-                    }
+                if (StringUtils.hasText(userDetail.getUsername())) {
+                    authentication = new UsernamePasswordAuthenticationToken(userDetail, null, userDetail.getAuthorities());
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
-            } else {
-                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception ex) {
             log.error("failed on set user authentication", ex);
@@ -61,11 +57,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private String getJwtFromRequest(HttpServletRequest request) {
+        // 1. Authorization header (email/password login)
         String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
-
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer")) {
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
         }
+
+        // 2. HttpOnly cookie (OAuth2 login)
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("access_token".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+
         return null;
     }
 }

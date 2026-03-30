@@ -127,7 +127,12 @@ public class ProductServiceImpl implements ProductService {
 
         List<Long> categoryIds = null;
 
-        if (filter.getCategoryId() != null) {
+        // categorySlug (from navbar) takes priority over categoryId (from sidebar)
+        if (filter.getCategorySlug() != null && !filter.getCategorySlug().isBlank()) {
+            categoryIds = categoryRepository.findBySlug(filter.getCategorySlug())
+                    .map(cat -> getAllCategoryIds(cat.getId()))
+                    .orElse(null);
+        } else if (filter.getCategoryId() != null) {
             categoryIds = getAllCategoryIds(filter.getCategoryId());
         }
 
@@ -137,7 +142,8 @@ public class ProductServiceImpl implements ProductService {
                 filter.getBrand(),
                 filter.getStatus(),
                 filter.getMinPrice(),
-                filter.getMaxPrice()
+                filter.getMaxPrice(),
+                filter.isOnSale()
         );
     }
 

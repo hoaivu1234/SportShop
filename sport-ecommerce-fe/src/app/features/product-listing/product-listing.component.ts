@@ -119,9 +119,16 @@ export class ProductListingComponent implements OnInit {
     this.keywordSubject$.next(keyword);
   }
 
-  /** Called by FilterSidebar for category / brand / price changes. */
+  /**
+   * Called by FilterSidebar for category / brand / price changes.
+   * When the sidebar sets categoryId, clear any navbar-driven categorySlug
+   * so the two are never active at the same time.
+   */
   onFilterChange(patch: Partial<ProductFilterState>): void {
-    this.navigate({ ...patch, page: 0 });
+    const normalized = 'categoryId' in patch
+      ? { ...patch, categorySlug: null }
+      : patch;
+    this.navigate({ ...normalized, page: 0 });
   }
 
   onSortChange(sort: SortKey): void {
@@ -143,11 +150,13 @@ export class ProductListingComponent implements OnInit {
 
   removeChip(key: keyof ProductFilterState): void {
     const reset: Partial<ProductFilterState> = { page: 0 };
-    if (key === 'keyword')    reset.keyword    = '';
-    if (key === 'categoryId') reset.categoryId = null;
-    if (key === 'brand')      reset.brand      = null;
-    if (key === 'minPrice')   reset.minPrice   = null;
-    if (key === 'maxPrice')   reset.maxPrice   = null;
+    if (key === 'keyword')      reset.keyword      = '';
+    if (key === 'categoryId')   reset.categoryId   = null;
+    if (key === 'categorySlug') { reset.categorySlug = null; reset.categoryId = null; }
+    if (key === 'brand')        reset.brand        = null;
+    if (key === 'minPrice')     reset.minPrice     = null;
+    if (key === 'maxPrice')     reset.maxPrice     = null;
+    if (key === 'onSale')       reset.onSale       = false;
     this.navigate(reset);
   }
 
@@ -164,7 +173,9 @@ export class ProductListingComponent implements OnInit {
 
     if (s.keyword)
       chips.push({ label: `"${s.keyword}"`, key: 'keyword' });
-    if (s.categoryId != null)
+    if (s.categorySlug)
+      chips.push({ label: this.resolveCategoryNameBySlug(s.categorySlug), key: 'categorySlug' });
+    else if (s.categoryId != null)
       chips.push({ label: this.resolveCategoryName(s.categoryId), key: 'categoryId' });
     if (s.brand)
       chips.push({ label: s.brand, key: 'brand' });
@@ -172,6 +183,8 @@ export class ProductListingComponent implements OnInit {
       chips.push({ label: `From $${s.minPrice}`, key: 'minPrice' });
     if (s.maxPrice != null)
       chips.push({ label: `Up to $${s.maxPrice}`, key: 'maxPrice' });
+    if (s.onSale)
+      chips.push({ label: 'On Sale', key: 'onSale' });
 
     return chips;
   }
@@ -206,5 +219,20 @@ export class ProductListingComponent implements OnInit {
       }
     }
     return `Category ${id}`;
+  }
+
+  /** Walk the category tree to resolve a display name from a slug. */
+  private resolveCategoryNameBySlug(slug: string): string {
+    for (const root of this.categoryTree()) {
+      if (root.slug === slug) return root.name;
+      for (const child of root.children ?? []) {
+        if (child.slug === slug) return child.name;
+        for (const leaf of child.children ?? []) {
+          if (leaf.slug === slug) return leaf.name;
+        }
+      }
+    }
+    // Capitalize the slug as a readable fallback
+    return slug.charAt(0).toUpperCase() + slug.slice(1);
   }
 }

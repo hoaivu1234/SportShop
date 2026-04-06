@@ -45,6 +45,10 @@ export class ProductService {
     return this.http.get<ProductDetailResponse>(PUBLIC_PRODUCT_API.BY_ID(id));
   }
 
+  getProductBySlug(slug: string): Observable<ApiResponse<ProductDetailResponse>> {
+    return this.http.get<ProductDetailResponse>(PUBLIC_PRODUCT_API.BY_SLUG(slug));
+  }
+
   // ── Admin read (ROLE_ADMIN) ───────────────────────────────────────────────
 
   /** Returns all products (any status) — for admin product management. */

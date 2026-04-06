@@ -30,6 +30,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'products/slug/:slug',
+        loadComponent: () =>
+          import('./features/product-detail/product-detail.component').then(
+            (m) => m.ProductDetailComponent,
+          ),
+      },
+      {
         path: 'search',
         loadComponent: () =>
           import('./features/search/search-results.component').then(
@@ -89,7 +96,7 @@ export const routes: Routes = [
       import('./features/checkout/checkout.component').then(
         (m) => m.CheckoutComponent,
       ),
-      canActivate: [authGuard]
+    canActivate: [authGuard]
   },
   {
     path: 'auth/login',

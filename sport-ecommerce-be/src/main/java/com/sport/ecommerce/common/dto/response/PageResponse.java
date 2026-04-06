@@ -31,4 +31,22 @@ public class PageResponse<T> {
                 .last(page.isLast())
                 .build();
     }
+
+    public static <T> PageResponse<T> of(
+            List<T> content,
+            long totalElements,
+            int page,
+            int size
+    ) {
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+
+        return PageResponse.<T>builder()
+                .content(content)
+                .page(page)
+                .size(size)
+                .totalElements(totalElements)
+                .totalPages(totalPages)
+                .last(page >= totalPages - 1)
+                .build();
+    }
 }

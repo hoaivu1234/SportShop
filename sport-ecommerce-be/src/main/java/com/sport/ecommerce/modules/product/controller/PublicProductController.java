@@ -6,7 +6,9 @@ import com.sport.ecommerce.common.dto.response.PageResponse;
 import com.sport.ecommerce.modules.product.dto.request.ProductFilterRequest;
 import com.sport.ecommerce.modules.product.dto.response.ProductDetailResponse;
 import com.sport.ecommerce.modules.product.dto.response.ProductListResponse;
+import com.sport.ecommerce.modules.product.service.ProductSearchService;
 import com.sport.ecommerce.modules.product.service.ProductService;
+import com.sport.ecommerce.modules.product.service.impl.ProductSearchServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +25,8 @@ import java.math.BigDecimal;
 public class PublicProductController {
 
     private final ProductService productService;
+
+    private final ProductSearchService productSearchService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<ProductListResponse>>> getProducts(
@@ -52,7 +56,7 @@ public class PublicProductController {
         filter.setSortBy(sortBy);
         filter.setSortDir(sortDir);
 
-        return ResponseEntity.ok(ApiResponse.success(productService.getProducts(filter)));
+        return ResponseEntity.ok(ApiResponse.success(productSearchService.search(filter)));
     }
 
     @GetMapping("/{id}")

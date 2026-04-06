@@ -5,6 +5,7 @@ import com.sport.ecommerce.exception.custom.BusinessException;
 import com.sport.ecommerce.modules.category.entity.Category;
 import com.sport.ecommerce.modules.category.repository.CategoryRepository;
 import com.sport.ecommerce.modules.category.service.CategoryService;
+import com.sport.ecommerce.modules.product.dto.document.ProductDocument;
 import com.sport.ecommerce.modules.product.dto.request.ProductFilterRequest;
 import com.sport.ecommerce.modules.product.dto.request.ProductImageRequest;
 import com.sport.ecommerce.modules.product.dto.request.ProductRequest;
@@ -17,6 +18,7 @@ import com.sport.ecommerce.modules.product.entity.variant.ProductVariant;
 import com.sport.ecommerce.modules.product.mapper.ProductMapper;
 import com.sport.ecommerce.modules.product.repository.ProductImageRepository;
 import com.sport.ecommerce.modules.product.repository.ProductRepository;
+import com.sport.ecommerce.modules.product.repository.ProductSearchRepository;
 import com.sport.ecommerce.modules.product.repository.ProductVariantRepository;
 import com.sport.ecommerce.modules.product.service.ProductService;
 import com.sport.ecommerce.modules.product.specification.ProductSpecification;
@@ -31,6 +33,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +52,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductMapper productMapper;
     private final CategoryRepository categoryRepository;
     private final CategoryService categoryService;
+    private final ProductSearchRepository productSearchRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -158,7 +162,44 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public ProductDetailResponse getProductById(Long id) {
+//        List<Product> products = productRepository.findAll();
+//
+//        products.forEach(p -> {
+//            productSearchRepository.save(toDocument(p));
+//        });
         return buildDetailResponse(findProductById(id));
+    }
+
+    public ProductDocument toDocument(Product product) {
+
+        if (product == null) return null;
+
+        return ProductDocument.builder()
+                .id(product.getId())
+                .name(product.getName())
+                .brand(product.getBrand())
+                .categoryId(
+                        product.getCategory() != null
+                                ? product.getCategory().getId()
+                                : null
+                )
+                .slug(
+                        product.getCategory() != null
+                                ? product.getCategory().getSlug()
+                                : null
+                )
+                .price(
+                        product.getPrice() != null
+                                ? product.getPrice()
+                                : null
+                )
+                .onSale(
+                        product.getDiscountPrice() != null &&
+                                product.getDiscountPrice().compareTo(BigDecimal.ZERO) > 0
+                )
+                .status(product.getStatus())
+                .createdAt(product.getCreatedAt())
+                .build();
     }
 
     @Override
@@ -180,6 +221,8 @@ public class ProductServiceImpl implements ProductService {
         saveImages(saved, request.getImages());
         saveVariants(saved, request.getVariants());
 
+        productSearchRepository.save(productMapper.toDocument(saved));
+
         return buildDetailResponse(saved);
     }
 
@@ -191,6 +234,8 @@ public class ProductServiceImpl implements ProductService {
         product.setSlug(generateUniqueSlug(request.getName(), id));
         product.setCategory(resolveCategory(request.getCategoryId()));
         Product saved = productRepository.save(product);
+
+        productSearchRepository.save(productMapper.toDocument(saved));
 
         // Replace images when the request includes them
         if (request.getImages() != null && !request.getImages().isEmpty()) {

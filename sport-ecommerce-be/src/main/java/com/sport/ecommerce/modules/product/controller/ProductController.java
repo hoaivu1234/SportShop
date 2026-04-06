@@ -7,7 +7,9 @@ import com.sport.ecommerce.modules.product.dto.request.ProductFilterRequest;
 import com.sport.ecommerce.modules.product.dto.request.ProductRequest;
 import com.sport.ecommerce.modules.product.dto.response.ProductDetailResponse;
 import com.sport.ecommerce.modules.product.dto.response.ProductListResponse;
+import com.sport.ecommerce.modules.product.service.ProductSearchService;
 import com.sport.ecommerce.modules.product.service.ProductService;
+import com.sport.ecommerce.modules.product.service.impl.ProductSearchServiceImpl;
 import com.sport.ecommerce.modules.product.util.ProductCsvWriter;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -33,6 +35,8 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+
+    private final ProductSearchService productSearchService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<ProductListResponse>>> getProducts(

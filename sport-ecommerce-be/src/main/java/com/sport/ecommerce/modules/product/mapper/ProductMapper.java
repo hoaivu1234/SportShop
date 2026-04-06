@@ -1,6 +1,7 @@
 package com.sport.ecommerce.modules.product.mapper;
 
 import com.sport.ecommerce.modules.category.mapper.CategoryMapper;
+import com.sport.ecommerce.modules.product.dto.document.ProductDocument;
 import com.sport.ecommerce.modules.product.dto.request.ProductRequest;
 import com.sport.ecommerce.modules.product.dto.response.ImageResponse;
 import com.sport.ecommerce.modules.product.dto.response.ProductDetailResponse;
@@ -51,4 +52,12 @@ public interface ProductMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     void updateEntity(ProductRequest request, @MappingTarget Product product);
+
+    @Mapping(source = "category.id", target = "categoryId")
+    @Mapping(source = "category.name", target = "categoryName")
+    @Mapping(target = "mainImageUrl", ignore = true)
+    @Mapping(target = "totalStock", ignore = true)
+    ProductDocument toDocument(Product product);
+
+    ProductListResponse fromDocument(ProductDocument doc);
 }

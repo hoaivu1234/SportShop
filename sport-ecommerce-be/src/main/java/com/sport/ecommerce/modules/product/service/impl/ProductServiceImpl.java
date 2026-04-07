@@ -163,43 +163,10 @@ public class ProductServiceImpl implements ProductService {
     @Transactional(readOnly = true)
     public ProductDetailResponse getProductById(Long id) {
 //        List<Product> products = productRepository.findAll();
-//
 //        products.forEach(p -> {
-//            productSearchRepository.save(toDocument(p));
+//            productSearchRepository.save(productMapper.toDocument(p));
 //        });
         return buildDetailResponse(findProductById(id));
-    }
-
-    public ProductDocument toDocument(Product product) {
-
-        if (product == null) return null;
-
-        return ProductDocument.builder()
-                .id(product.getId())
-                .name(product.getName())
-                .brand(product.getBrand())
-                .categoryId(
-                        product.getCategory() != null
-                                ? product.getCategory().getId()
-                                : null
-                )
-                .slug(
-                        product.getCategory() != null
-                                ? product.getCategory().getSlug()
-                                : null
-                )
-                .price(
-                        product.getPrice() != null
-                                ? product.getPrice()
-                                : null
-                )
-                .onSale(
-                        product.getDiscountPrice() != null &&
-                                product.getDiscountPrice().compareTo(BigDecimal.ZERO) > 0
-                )
-                .status(product.getStatus())
-                .createdAt(product.getCreatedAt())
-                .build();
     }
 
     @Override

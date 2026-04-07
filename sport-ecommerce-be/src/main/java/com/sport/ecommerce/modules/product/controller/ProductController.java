@@ -63,7 +63,7 @@ public class ProductController {
         filter.setSortBy(sortBy);
         filter.setSortDir(sortDir);
 
-        return ResponseEntity.ok(ApiResponse.success(productService.getProducts(filter)));
+        return ResponseEntity.ok(ApiResponse.success(productSearchService.search(filter)));
     }
 
     /**

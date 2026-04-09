@@ -19,14 +19,27 @@ export class AuthUtil {
     return localStorage.getItem(AUTH_KEYS.ACCESS_TOKEN);
   }
 
+  static getUserInfo(): string | null {
+    return localStorage.getItem(AUTH_KEYS.USER_INFO);
+  }
+
   static getRefreshToken(): string | null {
     return localStorage.getItem(AUTH_KEYS.REFRESH_TOKEN);
   }
 
   static isLoggedIn(): boolean {
     const token = AuthUtil.getAccessToken();
-    if (!token) return false;
-    return !AuthUtil.isTokenExpired(token);
+    const userInfo = AuthUtil.getUserInfo();
+
+    if (token && !AuthUtil.isTokenExpired(token)) {
+      return true;
+    }
+
+    if (userInfo) {
+      return true;
+    }
+
+    return false;
   }
 
   /**

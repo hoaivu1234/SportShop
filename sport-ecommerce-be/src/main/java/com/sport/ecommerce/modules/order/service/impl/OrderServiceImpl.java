@@ -12,6 +12,7 @@ import com.sport.ecommerce.modules.order.entity.Order;
 import com.sport.ecommerce.modules.order.entity.OrderItem;
 import com.sport.ecommerce.modules.order.enums.OrderStatus;
 import com.sport.ecommerce.modules.order.mapper.OrderMapper;
+import com.sport.ecommerce.modules.order.producer.OrderEmailProducer;
 import com.sport.ecommerce.modules.order.repository.OrderRepository;
 import com.sport.ecommerce.modules.order.service.OrderService;
 import com.sport.ecommerce.modules.product.entity.ProductImage;
@@ -49,6 +50,7 @@ public class OrderServiceImpl implements OrderService {
     private final ProductImageRepository   productImageRepository;
     private final UserRepository           userRepository;
     private final OrderMapper              orderMapper;
+    private final OrderEmailProducer       orderEmailProducer;
 
     // ── Place order ───────────────────────────────────────────────────────────
 
@@ -149,6 +151,8 @@ public class OrderServiceImpl implements OrderService {
         cartItemRepository.deleteAllByCartId(cart.getId());
         log.info("Order {} placed by user {} ({} items, total={})",
                 saved.getOrderNumber(), user.getId(), cartItems.size(), saved.getTotalPrice());
+
+        orderEmailProducer.sendOrderSuccessEmail(order);
 
         return toDetailResponse(saved);
     }

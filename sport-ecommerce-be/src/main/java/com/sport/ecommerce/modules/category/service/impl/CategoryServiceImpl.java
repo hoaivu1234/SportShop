@@ -1,6 +1,7 @@
 package com.sport.ecommerce.modules.category.service.impl;
 
 import com.sport.ecommerce.common.dto.response.PageResponse;
+import com.sport.ecommerce.config.cache.CacheNames;
 import com.sport.ecommerce.exception.custom.BusinessException;
 import com.sport.ecommerce.modules.category.dto.request.CategoryRequest;
 import com.sport.ecommerce.modules.category.dto.response.CategoryResponse;
@@ -11,6 +12,9 @@ import com.sport.ecommerce.modules.category.repository.CategoryRepository;
 import com.sport.ecommerce.modules.category.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -41,12 +45,14 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheNames.CATEGORY_TREE)
     public List<CategoryTreeResponse> getCategoryTree() {
         return buildTree(categoryRepository.findAllFlat());
     }
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheNames.CATEGORY_FLAT)
     public List<CategoryResponse> getAllFlat() {
         return categoryRepository.findAllFlat();
     }
@@ -59,12 +65,14 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheNames.CATEGORY_BY_ID, key = "#id")
     public CategoryResponse getCategoryById(Long id) {
         return categoryMapper.toResponse(findCategoryById(id));
     }
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheNames.CATEGORY_BY_SLUG, key = "#slug")
     public CategoryResponse getCategoryBySlug(String slug) {
         Category category = categoryRepository.findBySlug(slug)
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND.value(),
@@ -76,18 +84,21 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheNames.CATEGORY_LEVEL, key = "'level1'")
     public List<CategoryResponse> getLevel1Categories() {
         return categoryMapper.toResponseList(categoryRepository.findAllLevel1());
     }
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheNames.CATEGORY_LEVEL, key = "'level2'")
     public List<CategoryResponse> getLevel2Categories() {
         return categoryMapper.toResponseList(categoryRepository.findAllLevel2());
     }
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheNames.CATEGORY_LEVEL, key = "'level3'")
     public List<CategoryResponse> getLevel3Categories() {
         return categoryMapper.toResponseList(categoryRepository.findAllLevel3());
     }
@@ -120,6 +131,11 @@ public class CategoryServiceImpl implements CategoryService {
      */
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.CATEGORY_TREE, allEntries = true),
+            @CacheEvict(value = CacheNames.CATEGORY_FLAT, allEntries = true),
+            @CacheEvict(value = CacheNames.CATEGORY_LEVEL, allEntries = true)
+    })
     public CategoryResponse createCategory(CategoryRequest request) {
         if (request.getParentId() == null) {
             throw new BusinessException(HttpStatus.BAD_REQUEST.value(),
@@ -157,6 +173,13 @@ public class CategoryServiceImpl implements CategoryService {
      */
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.CATEGORY_TREE, allEntries = true),
+            @CacheEvict(value = CacheNames.CATEGORY_FLAT, allEntries = true),
+            @CacheEvict(value = CacheNames.CATEGORY_LEVEL, allEntries = true),
+            @CacheEvict(value = CacheNames.CATEGORY_BY_ID, key = "#id"),
+            @CacheEvict(value = CacheNames.CATEGORY_BY_SLUG, allEntries = true)
+    })
     public CategoryResponse updateCategory(Long id, CategoryRequest request) {
         Category category = findCategoryById(id);
 
@@ -199,6 +222,13 @@ public class CategoryServiceImpl implements CategoryService {
      */
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.CATEGORY_TREE, allEntries = true),
+            @CacheEvict(value = CacheNames.CATEGORY_FLAT, allEntries = true),
+            @CacheEvict(value = CacheNames.CATEGORY_LEVEL, allEntries = true),
+            @CacheEvict(value = CacheNames.CATEGORY_BY_ID, key = "#id"),
+            @CacheEvict(value = CacheNames.CATEGORY_BY_SLUG, allEntries = true)
+    })
     public void deleteCategory(Long id) {
         Category category = findCategoryById(id);
 

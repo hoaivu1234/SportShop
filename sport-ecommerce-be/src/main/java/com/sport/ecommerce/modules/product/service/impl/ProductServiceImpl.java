@@ -1,6 +1,7 @@
 package com.sport.ecommerce.modules.product.service.impl;
 
 import com.sport.ecommerce.common.dto.response.PageResponse;
+import com.sport.ecommerce.config.cache.CacheNames;
 import com.sport.ecommerce.exception.custom.BusinessException;
 import com.sport.ecommerce.modules.category.entity.Category;
 import com.sport.ecommerce.modules.category.repository.CategoryRepository;
@@ -24,6 +25,9 @@ import com.sport.ecommerce.modules.product.service.ProductService;
 import com.sport.ecommerce.modules.product.specification.ProductSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -161,16 +165,14 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheNames.PRODUCT_BY_ID, key = "#id")
     public ProductDetailResponse getProductById(Long id) {
-//        List<Product> products = productRepository.findAll();
-//        products.forEach(p -> {
-//            productSearchRepository.save(productMapper.toDocument(p));
-//        });
         return buildDetailResponse(findProductById(id));
     }
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheNames.PRODUCT_BY_SLUG, key = "#slug")
     public ProductDetailResponse getProductBySlug(String slug) {
         Product product = productRepository.findBySlugAndIsDeletedFalse(slug)
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND.value(), "Product not found with slug: " + slug));
@@ -195,6 +197,10 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.PRODUCT_BY_ID, key = "#id"),
+            @CacheEvict(value = CacheNames.PRODUCT_BY_SLUG, allEntries = true)
+    })
     public ProductDetailResponse updateProduct(Long id, ProductRequest request) {
         Product product = findProductById(id);
         productMapper.updateEntity(request, product);
@@ -220,6 +226,10 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.PRODUCT_BY_ID, key = "#id"),
+            @CacheEvict(value = CacheNames.PRODUCT_BY_SLUG, allEntries = true)
+    })
     public void deleteProduct(Long id) {
         Product product = findProductById(id); // throws 404 if not found or already deleted
         productVariantRepository.deactivateByProductId(id); // deactivate all variants atomically

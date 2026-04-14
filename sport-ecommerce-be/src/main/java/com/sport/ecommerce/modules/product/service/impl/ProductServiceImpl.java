@@ -231,8 +231,8 @@ public class ProductServiceImpl implements ProductService {
             @CacheEvict(value = CacheNames.PRODUCT_BY_SLUG, allEntries = true)
     })
     public void deleteProduct(Long id) {
-        Product product = findProductById(id); // throws 404 if not found or already deleted
-        productVariantRepository.deactivateByProductId(id); // deactivate all variants atomically
+        Product product = findProductById(id);
+        productVariantRepository.deactivateByProductId(id);
         product.setIsDeleted(true);
         productRepository.save(product);
     }

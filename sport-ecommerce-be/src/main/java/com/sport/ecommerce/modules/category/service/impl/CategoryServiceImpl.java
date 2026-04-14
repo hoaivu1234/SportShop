@@ -47,6 +47,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional(readOnly = true)
     @Cacheable(value = CacheNames.CATEGORY_TREE)
     public List<CategoryTreeResponse> getCategoryTree() {
+        log.info("getCategoryTree");
         return buildTree(categoryRepository.findAllFlat());
     }
 

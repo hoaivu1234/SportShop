@@ -49,20 +49,6 @@ spring:
     redis:
       cache-null-values: false
 
-cache:
-  default-ttl: 10m
-  ttl:
-    "category:tree":  60m
-    "category:flat":  60m
-    "category:level": 60m
-    "category:id":    30m
-    "category:slug":  30m
-    "product:id":     15m
-    "product:slug":   15m
-
-  elasticsearch:
-    uris: http://localhost:9200
-
   rabbitmq:
     host: ${RABBITMQ_HOST}
     port: ${RABBITMQ_PORT}
@@ -83,6 +69,17 @@ cache:
           auth: true
           starttls:
             enable: true
+
+cache:
+  default-ttl: 10m
+  ttl:
+    "category:tree":  60m
+    "category:flat":  60m
+    "category:level": 60m
+    "category:id":    30m
+    "category:slug":  30m
+    "product:id":     15m
+    "product:slug":   15m
 
 cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME}

@@ -135,4 +135,10 @@ public class ProductController {
         productService.deleteProduct(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
+
+    @PostMapping("/reindex")
+    public ResponseEntity<ApiResponse<Void>> reindexProducts() {
+        productService.reindex();
+        return ResponseEntity.ok(ApiResponse.noContent());
+    }
 }

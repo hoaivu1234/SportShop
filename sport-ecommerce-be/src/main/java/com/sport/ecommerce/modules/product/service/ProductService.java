@@ -24,4 +24,6 @@ public interface ProductService {
     ProductDetailResponse updateProduct(Long id, ProductRequest request);
 
     void deleteProduct(Long id);
+
+    void reindex();
 }

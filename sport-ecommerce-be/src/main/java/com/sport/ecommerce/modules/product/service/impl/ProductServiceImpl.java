@@ -23,6 +23,7 @@ import com.sport.ecommerce.modules.product.repository.ProductSearchRepository;
 import com.sport.ecommerce.modules.product.repository.ProductVariantRepository;
 import com.sport.ecommerce.modules.product.service.ProductService;
 import com.sport.ecommerce.modules.product.specification.ProductSpecification;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -57,6 +58,15 @@ public class ProductServiceImpl implements ProductService {
     private final CategoryRepository categoryRepository;
     private final CategoryService categoryService;
     private final ProductSearchRepository productSearchRepository;
+
+    @Override
+    @Transactional(readOnly = true)
+    public void reindex() {
+        List<Product> products = productRepository.findAll();
+        products.forEach(p -> {
+            productSearchRepository.save(productMapper.toDocument(p));
+        });
+    }
 
     @Override
     @Transactional(readOnly = true)

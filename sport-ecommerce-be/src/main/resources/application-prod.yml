@@ -1,0 +1,89 @@
+logging:
+  level:
+    ROOT: INFO
+    com.sport.ecommerce: INFO
+
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
+      max-lifetime: 1800000
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      timeout: 2000ms
+
+  cache:
+    type: redis
+    redis:
+      cache-null-values: false
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+    virtual-host: ${RABBITMQ_VHOST}
+    ssl:
+      enabled: true
+
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+cache:
+  default-ttl: 10m
+  ttl:
+    "category:tree":  60m
+    "category:flat":  60m
+    "category:level": 60m
+    "category:id":    30m
+    "category:slug":  30m
+    "product:id":     15m
+    "product:slug":   15m
+
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME}
+  api-key: ${CLOUDINARY_API_KEY}
+  api-secret: ${CLOUDINARY_API_SECRET}
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 900000
+
+app:
+  frontend-url: ${FRONTEND_URL}

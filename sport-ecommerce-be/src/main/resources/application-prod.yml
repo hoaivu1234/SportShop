@@ -33,11 +33,25 @@ spring:
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET}
 
+  elasticsearch:
+    uris: ${SPRING_ELASTICSEARCH_URIS}
+    username: ${ELASTICSEARCH_USERNAME}
+    password: ${ELASTICSEARCH_PASSWORD}
+    connection-timeout: 10s
+    socket-timeout: 30s
+
   data:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
       timeout: 2000ms
+
+    elasticsearch:
+      repositories:
+        enabled: true
+      client:
+        reactive:
+          endpoints: elasticsearch-z9n80upqy0i2dfjs0bxv0van:9200
 
   cache:
     type: redis

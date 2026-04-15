@@ -14,6 +14,14 @@ Dự án áp dụng các công nghệ tiên tiến: **Caching**, **Message Queue
 
 ---
 
+## 🌐 Thông Tin Dự Án
+
+- **Website**: [https://hvsport.xyz](https://hvsport.xyz)
+- **Backend API**: [https://api.hvsport.xyz](https://api.hvsport.xyz)
+- **Tài khoản Admin**:
+- Email: admin@sport.com
+- Mật khẩu: daica123
+
 ## ✨ Tính Năng Nổi Bật
 
 - **🔐 Xác thực & Bảo mật mạnh mẽ**
